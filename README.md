@@ -1,6 +1,6 @@
 # ReactiveFeedback
 
-Unidirectional Reactive Architecture. This is a [ReactiveSwift](https://github.com/ReactiveCocoa/ReactiveSwift) implemetation of [RxFeedback](https://github.com/kzaher/RxFeedback)
+Unidirectional Reactive Architecture. This is a [ReactiveSwift](https://github.com/ReactiveCocoa/ReactiveSwift) counterpart of [RxFeedback](https://github.com/kzaher/RxFeedback).
 
 ## Documentation
 
@@ -169,3 +169,6 @@ label.reactive.text <~ system.map(String.init)
 ### Advantages
 
 TODO
+
+### Acknowledgements
+This is a community fork of the [ReactiveFeedback](https://github.com/babylonpartners/ReactiveFeedback) project (with the MIT license) from Babylon Health.
