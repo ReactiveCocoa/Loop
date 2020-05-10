@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
 
-  s.name          = "ReactiveFeedback"
+  s.name          = "Loop"
   s.version       = "0.8.0"
   s.summary       = "Unidirectional reactive architecture"
 
@@ -8,14 +8,14 @@ Pod::Spec.new do |s|
                     A unidirectional data flow µframework, built on top of ReactiveSwift.
                     DESC
 
-  s.homepage      = "https://github.com/Babylonpartners/ReactiveFeedback/"
+  s.homepage      = "https://github.com/RACCommunity/Loop/"
   s.license       = { :type => "MIT", :file => "LICENSE" }
-  s.author        = { "Babylon iOS" => "ios.development@babylonhealth.com" }
+  s.author        = "ReactiveCocoa Community"
   s.ios.deployment_target = '8.0'
   s.osx.deployment_target = '10.9'
   s.watchos.deployment_target = '2.0'
   s.tvos.deployment_target = '9.0'
-  s.source        = { :git => "https://github.com/Babylonpartners/ReactiveFeedback.git", :tag => "#{s.version}" }
+  s.source        = { :git => "https://github.com/RACCommunity/Loop.git", :tag => "#{s.version}" }
   s.source_files  = "ReactiveFeedback/*.{swift}"
 
   s.cocoapods_version = ">= 1.7.0"
