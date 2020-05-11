@@ -1149,7 +1149,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks @loader_path/Frameworks @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = org.reactivecocoa.LoopTests;
 				PRODUCT_NAME = LoopTests;
-				SDKROOT = iphoneos;
+				SDKROOT = appletvos;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -1167,7 +1167,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks @loader_path/Frameworks @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = org.reactivecocoa.LoopTests;
 				PRODUCT_NAME = LoopTests;
-				SDKROOT = iphoneos;
+				SDKROOT = appletvos;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
