@@ -1,18 +1,18 @@
-// swift-tools-version:4.0
+// swift-tools-version:5.0
 import PackageDescription
 
 let package = Package(
-    name: "ReactiveFeedback",
+    name: "Loop",
     products: [
-        .library(name: "ReactiveFeedback", targets: ["ReactiveFeedback"]),
+        .library(name: "Loop", targets: ["Loop"]),
     ],
     dependencies: [
         .package(url: "https://github.com/ReactiveCocoa/ReactiveSwift", from: "6.0.0"),
         .package(url: "https://github.com/Quick/Nimble.git", from: "8.0.0"),
     ],
     targets: [
-        .target(name: "ReactiveFeedback", dependencies: ["ReactiveSwift"], path: "ReactiveFeedback"),
-        .testTarget(name: "ReactiveFeedbackTests", dependencies: ["ReactiveFeedback", "ReactiveSwift", "Nimble"], path: "ReactiveFeedbackTests"),
+        .target(name: "Loop", dependencies: ["ReactiveSwift"], path: "Loop"),
+        .testTarget(name: "LoopTests", dependencies: ["Loop", "ReactiveSwift", "Nimble"], path: "LoopTests"),
     ],
-    swiftLanguageVersions: [5]
+    swiftLanguageVersions: [.v5]
 )

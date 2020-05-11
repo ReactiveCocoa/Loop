@@ -15,6 +15,6 @@
       </FileRef>
    </Group>
    <FileRef
-      location = "group:ReactiveFeedback.xcodeproj">
+      location = "group:Loop.xcodeproj">
    </FileRef>
 </Workspace>
