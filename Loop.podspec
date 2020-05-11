@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name          = "Loop"
-  s.version       = "0.9.0"
+  s.version       = "1.0.0"
   s.summary       = "Unidirectional reactive architecture"
 
   s.description   = <<-DESC
@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   s.watchos.deployment_target = '2.0'
   s.tvos.deployment_target = '9.0'
   s.source        = { :git => "https://github.com/ReactiveCocoa/Loop.git", :tag => "#{s.version}" }
-  s.source_files  = "ReactiveFeedback/*.{swift}"
+  s.source_files  = "Loop/*.{swift}"
 
   s.cocoapods_version = ">= 1.7.0"
   s.swift_versions = ["5.0", "5.1"]

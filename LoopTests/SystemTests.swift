@@ -1,7 +1,7 @@
 import XCTest
 import Nimble
 import ReactiveSwift
-@testable import ReactiveFeedback
+@testable import Loop
 
 class SystemTests: XCTestCase {
 
