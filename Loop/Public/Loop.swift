@@ -73,6 +73,9 @@ extension Loop {
         return scoped(to: value, event: event)
     }
 
-    @available(*, deprecated, message:"Loop now starts automatically.")
+    @available(*, unavailable, message:"Loop now starts automatically.")
     public func start() {}
+
+    @available(*, unavailable, message:"Loop stops when deinitialized.")
+    public func stop() {}
 }
