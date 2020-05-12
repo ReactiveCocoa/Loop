@@ -26,6 +26,17 @@ internal class ScopedLoopBox<RootState, RootEvent, ScopedState, ScopedEvent>: Lo
     override func send(_ event: ScopedEvent) {
         root.send(eventTransform(event))
     }
+
+    override func scoped<S, E>(
+        to scope: KeyPath<ScopedState, S>,
+        event: @escaping (E) -> ScopedEvent
+    ) -> LoopBoxBase<S, E> {
+        return ScopedLoopBox<RootState, RootEvent, S, E>(
+            root: self.root,
+            value: value.appending(path: scope),
+            event: { [eventTransform] in eventTransform(event($0)) }
+        )
+    }
 }
 
 internal class RootLoopBox<State, Event>: LoopBoxBase<State, Event> {
@@ -38,7 +49,7 @@ internal class RootLoopBox<State, Event>: LoopBoxBase<State, Event> {
     private let token: Lifetime.Token
     private let input = Loop<State, Event>.Feedback.input
 
-    public override var producer: SignalProducer<State, Never> {
+    override var producer: SignalProducer<State, Never> {
         SignalProducer { observer, lifetime in
             self.floodgate.withValue { initial, hasStarted -> Void in
                 if hasStarted {
@@ -53,7 +64,7 @@ internal class RootLoopBox<State, Event>: LoopBoxBase<State, Event> {
         }
     }
 
-    public init(
+    init(
         initial: State,
         reducer: @escaping (inout State, Event) -> Void,
         feedbacks: [Loop<State, Event>.Feedback],
@@ -73,6 +84,13 @@ internal class RootLoopBox<State, Event>: LoopBoxBase<State, Event> {
         if startImmediately {
             self.start()
         }
+    }
+
+    override func scoped<S, E>(
+        to scope: KeyPath<State, S>,
+        event: @escaping (E) -> Event
+    ) -> LoopBoxBase<S, E> {
+        ScopedLoopBox(root: self, value: scope, event: event)
     }
 
     func start() {
@@ -97,6 +115,13 @@ internal class LoopBoxBase<State, Event> {
     var producer: SignalProducer<State, Never> { subclassMustImplement() }
 
     func send(_ event: Event) { subclassMustImplement() }
+
+    func scoped<S, E>(
+        to scope: KeyPath<State, S>,
+        event: @escaping (E) -> Event
+    ) -> LoopBoxBase<S, E> {
+        subclassMustImplement()
+    }
 }
 
 @inline(never)

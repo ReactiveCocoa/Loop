@@ -47,7 +47,7 @@ public final class Loop<State, Event> {
         event: @escaping (ScopedEvent) -> Event
     ) -> Loop<ScopedState, ScopedEvent> {
         return Loop<ScopedState, ScopedEvent>(
-            box: ScopedLoopBox(root: self.box, value: scope, event: event)
+            box: box.scoped(to: scope, event: event)
         )
     }
 }
