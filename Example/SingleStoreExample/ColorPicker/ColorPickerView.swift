@@ -2,9 +2,9 @@ import UIKit
 import Loop
 
 final class ColorPickerViewController: ContainerViewController<ColorPickerView> {
-    private let store: Store<ColorPicker.State, ColorPicker.Event>
+    private let store: Loop<ColorPicker.State, ColorPicker.Event>
 
-    init(store: Store<ColorPicker.State, ColorPicker.Event>) {
+    init(store: Loop<ColorPicker.State, ColorPicker.Event>) {
         self.store = store
         super.init()
     }
@@ -15,7 +15,7 @@ final class ColorPickerViewController: ContainerViewController<ColorPickerView> 
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        store.state.producer.startWithValues(contentView.render)
+        store.context.startWithValues(contentView.render)
     }
 }
 

@@ -89,13 +89,14 @@ extension SignalProducer where Error == Never {
     public static func feedbackLoop<Event>(
         initial: Value,
         reduce: @escaping (inout Value, Event) -> Void,
-        feedbacks: [FeedbackLoop<Value, Event>.Feedback]
+        feedbacks: [Loop<Value, Event>.Feedback]
     ) -> SignalProducer<Value, Never> {
         return SignalProducer.deferred { downstreamLifetime in
-             let feedbackLoop = FeedbackLoop(
+             let feedbackLoop = RootLoopBox(
                  initial: initial,
-                 reduce: reduce,
-                 feedbacks: feedbacks
+                 reducer: reduce,
+                 feedbacks: feedbacks,
+                 startImmediately: false
              )
              downstreamLifetime.observeEnded(feedbackLoop.stop)
              return feedbackLoop.producer.on(started: feedbackLoop.start)
@@ -114,7 +115,7 @@ extension SignalProducer where Error == Never {
     public static func feedbackLoop<Event>(
         initial: Value,
         reduce: @escaping (inout Value, Event) -> Void,
-        feedbacks: FeedbackLoop<Value, Event>.Feedback...
+        feedbacks: Loop<Value, Event>.Feedback...
     ) -> SignalProducer<Value, Error> {
         return feedbackLoop(initial: initial, reduce: reduce, feedbacks: feedbacks)
     }
