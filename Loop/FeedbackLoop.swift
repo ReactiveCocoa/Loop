@@ -52,31 +52,51 @@ extension FeedbackLoop {
     public struct Feedback {
         let events: (_ state: SignalProducer<State, Never>, _ output: FeedbackEventConsumer<Event>) -> Disposable
 
-        public init(
-            events: @escaping (
-            _ state: SignalProducer<State, Never>,
-            _ output: FeedbackEventConsumer<Event>
-            ) -> Disposable
+        /// Private designated initializer. See the public designated initializer below.
+        fileprivate init(
+            startWith events: @escaping (_ state: SignalProducer<State, Never>, _ output: FeedbackEventConsumer<Event>) -> Disposable
         ) {
             self.events = events
         }
 
         /// Creates a custom Feedback, with the complete liberty of defining the data flow.
         ///
-        /// - important: While you may respond to state changes in whatever ways you prefer, you **must** enqueue produced
-        ///              events using the `SignalProducer.enqueue(to:)` operator to the `FeedbackEventConsumer` provided
-        ///              to you. Otherwise, the feedback loop will not be able to pick up and process your events.
+        /// Consider using the standard `Feedback` variants, before deriving down to use this desginated initializer.
+        ///
+        /// Events must be explicitly enqueued using `SignalProducer.enqueue(to:)` with the `FeedbackEventConsumer`
+        /// provided to the setup closure. `enqueue(to:)` respects producer cancellation and removes outstanding events
+        /// from the loop internal event queue.
+        ///
+        /// This is useful if you wish to discard events when the state changes in certain ways. For example,
+        /// `Feedback(skippingRepeated:effects:)` enqueues events inside `flatMap(.latest)`, so that unprocessed events
+        /// are automatically removed when the inner producer has switched.
+        ///
+        /// - important: The `state` producer provided to the setup closure **does not** replay the current state.
         ///
         /// - parameters:
         ///   - setup: The setup closure to construct a data flow producing events in respond to changes from `state`,
         ///             and having them consumed by `output` using the `SignalProducer.enqueue(to:)` operator.
-        public static func custom(
-            _ setup: @escaping (
+        public init(
+            events: @escaping (
                 _ state: SignalProducer<State, Never>,
                 _ output: FeedbackEventConsumer<Event>
-            ) -> Disposable
-        ) -> Feedback {
-            return Feedback(events: setup)
+            ) -> SignalProducer<Never, Never>
+        ) {
+            self.events = { events($0, $1).start() }
+        }
+
+        /// Creates a Feedback that observes an external producer and maps it to an event.
+        ///
+        /// - parameters:
+        ///   - setup: The setup closure to construct a data flow producing events in respond to changes from `state`,
+        ///             and having them consumed by `output` using the `SignalProducer.enqueue(to:)` operator.
+        public init<Values: SignalProducerConvertible>(
+            source: Values,
+            as transform: @escaping (Values.Value) -> Event
+        ) where Values.Error == Never {
+            self.init { _, output in
+                source.producer.map(transform).enqueueNonCancelling(to: output)
+            }
         }
 
         /// Creates a Feedback which re-evaluates the given effect every time the
@@ -181,9 +201,7 @@ extension FeedbackLoop {
         
         public static var input: (feedback: Feedback, observer: (Event) -> Void) {
             let pipe = Signal<Event, Never>.pipe()
-            let feedback = Feedback.custom { (state, consumer) -> Disposable in
-                pipe.output.producer.enqueue(to: consumer).start()
-            }
+            let feedback = Feedback(source: pipe.output, as: { $0 })
             return (feedback, pipe.input.send)
         }
         
@@ -192,23 +210,45 @@ extension FeedbackLoop {
             value: KeyPath<State, LocalState>,
             event: @escaping (LocalEvent) -> Event
         ) -> Feedback {
-            return Feedback.custom { (state, consumer) -> Disposable in
+            return Feedback(startWith: { (state, consumer) in
                 return feedback.events(
                     state.map(value),
                     consumer.pullback(event)
                 )
-            }
+            })
         }
         
         public static func combine(_ feedbacks: FeedbackLoop<State, Event>.Feedback...) -> Feedback {
-            return .custom { (state, consumer) -> Disposable in
+            return Feedback(startWith: { (state, consumer) in
                 return feedbacks.map { (feedback) in
                     feedback.events(state, consumer)
                 }
                 .reduce(into: CompositeDisposable()) { (composite, disposable) in
                     composite += disposable
                 }
-            }
+            })
         }
+    }
+}
+
+extension FeedbackLoop.Feedback {
+    @available(*, deprecated, renamed:"init(_:)")
+    public static func custom(
+        _ setup: @escaping (
+            _ state: SignalProducer<State, Never>,
+            _ output: FeedbackEventConsumer<Event>
+        ) -> Disposable
+    ) -> FeedbackLoop.Feedback {
+        return FeedbackLoop.Feedback(events: setup)
+    }
+
+    @available(*, deprecated, renamed:"init(_:)")
+    public init(
+        events: @escaping (
+            _ state: SignalProducer<State, Never>,
+            _ output: FeedbackEventConsumer<Event>
+        ) -> Disposable
+    ) {
+        self.events = { events($0.producer, $1) }
     }
 }
