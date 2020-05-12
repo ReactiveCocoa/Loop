@@ -1,7 +1,7 @@
 import UIKit
 import ReactiveSwift
 import ReactiveCocoa
-import ReactiveFeedback
+import Loop
 
 class ViewController: UIViewController {
     @IBOutlet weak var plusButton: UIButton!

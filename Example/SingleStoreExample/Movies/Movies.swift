@@ -1,5 +1,5 @@
 import Foundation
-import ReactiveFeedback
+import Loop
 import ReactiveSwift
 import UIKit
 

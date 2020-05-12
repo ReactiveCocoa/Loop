@@ -1,5 +1,5 @@
 import UIKit
-import ReactiveFeedback
+import Loop
 
 final class CounterViewController: ContainerViewController<CounterView> {
     private let store: Store<Counter.State, Counter.Event>

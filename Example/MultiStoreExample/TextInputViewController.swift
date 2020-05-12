@@ -1,7 +1,7 @@
 import UIKit
 import ReactiveSwift
 import ReactiveCocoa
-import ReactiveFeedback
+import Loop
 
 
 class TextInputViewController: UIViewController {

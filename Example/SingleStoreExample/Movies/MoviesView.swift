@@ -1,5 +1,5 @@
 import UIKit
-import ReactiveFeedback
+import Loop
 
 final class MoviesViewController: ContainerViewController<MoviesView> {
     private let store: Store<Movies.State, Movies.Event>
