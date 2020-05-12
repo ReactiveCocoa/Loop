@@ -5,6 +5,10 @@ internal class ScopedLoopBox<RootState, RootEvent, ScopedState, ScopedEvent>: Lo
         root.producer.map(value)
     }
 
+    override var lifetime: Lifetime {
+        root.lifetime
+    }
+
     private let root: LoopBoxBase<RootState, RootEvent>
     private let value: KeyPath<RootState, ScopedState>
     private let eventTransform: (ScopedEvent) -> RootEvent
