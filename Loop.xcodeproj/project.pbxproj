@@ -43,6 +43,9 @@
 		5BC88F98246B191200394C63 /* Loop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC88F97246B191200394C63 /* Loop.swift */; };
 		5BC88F99246B191200394C63 /* Loop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC88F97246B191200394C63 /* Loop.swift */; };
 		5BC88F9A246B191200394C63 /* Loop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC88F97246B191200394C63 /* Loop.swift */; };
+		5BC88F9C246B1CDE00394C63 /* SignalProducer+Loop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC88F9B246B1CDE00394C63 /* SignalProducer+Loop.swift */; };
+		5BC88F9D246B1CDE00394C63 /* SignalProducer+Loop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC88F9B246B1CDE00394C63 /* SignalProducer+Loop.swift */; };
+		5BC88F9E246B1CDE00394C63 /* SignalProducer+Loop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC88F9B246B1CDE00394C63 /* SignalProducer+Loop.swift */; };
 		656A9C9323D0813500EFB2F8 /* FeedbackLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656A9C9223D0813500EFB2F8 /* FeedbackLoop.swift */; };
 		656A9C9423D0813500EFB2F8 /* FeedbackLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656A9C9223D0813500EFB2F8 /* FeedbackLoop.swift */; };
 		656A9C9523D0813500EFB2F8 /* FeedbackLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656A9C9223D0813500EFB2F8 /* FeedbackLoop.swift */; };
@@ -191,6 +194,7 @@
 		5BC88F8D246B11DE00394C63 /* LoopBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopBox.swift; sourceTree = "<group>"; };
 		5BC88F91246B17B200394C63 /* Context.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Context.swift; sourceTree = "<group>"; };
 		5BC88F97246B191200394C63 /* Loop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loop.swift; sourceTree = "<group>"; };
+		5BC88F9B246B1CDE00394C63 /* SignalProducer+Loop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SignalProducer+Loop.swift"; sourceTree = "<group>"; };
 		656A9C9223D0813500EFB2F8 /* FeedbackLoop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackLoop.swift; sourceTree = "<group>"; };
 		656A9C9623D0826100EFB2F8 /* FeedbackEventConsumer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackEventConsumer.swift; sourceTree = "<group>"; };
 		65761B2523CF20EF004D5506 /* Floodgate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Floodgate.swift; sourceTree = "<group>"; };
@@ -391,6 +395,7 @@
 			isa = PBXGroup;
 			children = (
 				5BC88F97246B191200394C63 /* Loop.swift */,
+				5BC88F9B246B1CDE00394C63 /* SignalProducer+Loop.swift */,
 				656A9C9223D0813500EFB2F8 /* FeedbackLoop.swift */,
 				5BC88F91246B17B200394C63 /* Context.swift */,
 				585CD87A239E6A39004BE9CC /* Reducer.swift */,
@@ -713,6 +718,7 @@
 				A9509BE4551098F4A5503820 /* Feedback.swift in Sources */,
 				A950943401765BB90FA846B2 /* SignalProducer+System.swift in Sources */,
 				65761B2E23CF4CA2004D5506 /* NSLock+Extensions.swift in Sources */,
+				5BC88F9C246B1CDE00394C63 /* SignalProducer+Loop.swift in Sources */,
 				5BC88F92246B17B200394C63 /* Context.swift in Sources */,
 				585CD87B239E6A39004BE9CC /* Reducer.swift in Sources */,
 				9AD5D42D1F97375E00E6AE5A /* Property+System.swift in Sources */,
@@ -750,6 +756,7 @@
 				65F8C260218371A800924657 /* Feedback.swift in Sources */,
 				65F8C261218371A800924657 /* SignalProducer+System.swift in Sources */,
 				65761B2F23CF4CA2004D5506 /* NSLock+Extensions.swift in Sources */,
+				5BC88F9D246B1CDE00394C63 /* SignalProducer+Loop.swift in Sources */,
 				5BC88F93246B17B200394C63 /* Context.swift in Sources */,
 				585CD87C239E6A3E004BE9CC /* Reducer.swift in Sources */,
 				65F8C262218371A800924657 /* Property+System.swift in Sources */,
@@ -768,6 +775,7 @@
 				65F8C26F218371AC00924657 /* Feedback.swift in Sources */,
 				65F8C270218371AC00924657 /* SignalProducer+System.swift in Sources */,
 				65761B3023CF4CA2004D5506 /* NSLock+Extensions.swift in Sources */,
+				5BC88F9E246B1CDE00394C63 /* SignalProducer+Loop.swift in Sources */,
 				5BC88F94246B17B200394C63 /* Context.swift in Sources */,
 				585CD87D239E6A3E004BE9CC /* Reducer.swift in Sources */,
 				65F8C271218371AC00924657 /* Property+System.swift in Sources */,
