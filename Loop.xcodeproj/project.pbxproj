@@ -40,6 +40,9 @@
 		5898B6D11F97ADDD005EEAEC /* SystemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5898B6D01F97ADDD005EEAEC /* SystemTests.swift */; };
 		5BC88F842469CBA300394C63 /* Nimble.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BC88F832469CBA300394C63 /* Nimble.framework */; };
 		5BC88F862469CBAB00394C63 /* Nimble.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BC88F852469CBAB00394C63 /* Nimble.framework */; };
+		5BC88F88246AFC5900394C63 /* ReactiveSwift+FeedbackLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC88F87246AFC5900394C63 /* ReactiveSwift+FeedbackLoop.swift */; };
+		5BC88F89246AFC5900394C63 /* ReactiveSwift+FeedbackLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC88F87246AFC5900394C63 /* ReactiveSwift+FeedbackLoop.swift */; };
+		5BC88F8A246AFC5900394C63 /* ReactiveSwift+FeedbackLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC88F87246AFC5900394C63 /* ReactiveSwift+FeedbackLoop.swift */; };
 		656A9C9323D0813500EFB2F8 /* FeedbackLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656A9C9223D0813500EFB2F8 /* FeedbackLoop.swift */; };
 		656A9C9423D0813500EFB2F8 /* FeedbackLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656A9C9223D0813500EFB2F8 /* FeedbackLoop.swift */; };
 		656A9C9523D0813500EFB2F8 /* FeedbackLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656A9C9223D0813500EFB2F8 /* FeedbackLoop.swift */; };
@@ -187,6 +190,7 @@
 		5898B6D01F97ADDD005EEAEC /* SystemTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SystemTests.swift; sourceTree = "<group>"; };
 		5BC88F832469CBA300394C63 /* Nimble.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Nimble.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		5BC88F852469CBAB00394C63 /* Nimble.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Nimble.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		5BC88F87246AFC5900394C63 /* ReactiveSwift+FeedbackLoop.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ReactiveSwift+FeedbackLoop.swift"; sourceTree = "<group>"; };
 		656A9C9223D0813500EFB2F8 /* FeedbackLoop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackLoop.swift; sourceTree = "<group>"; };
 		656A9C9623D0826100EFB2F8 /* FeedbackEventConsumer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackEventConsumer.swift; sourceTree = "<group>"; };
 		65761B2523CF20EF004D5506 /* Floodgate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Floodgate.swift; sourceTree = "<group>"; };
@@ -284,6 +288,7 @@
 				656A9C9223D0813500EFB2F8 /* FeedbackLoop.swift */,
 				656A9C9623D0826100EFB2F8 /* FeedbackEventConsumer.swift */,
 				A9509880213192F0D80EC2B3 /* SignalProducer+System.swift */,
+				5BC88F87246AFC5900394C63 /* ReactiveSwift+FeedbackLoop.swift */,
 				9AD5D42C1F97375E00E6AE5A /* Property+System.swift */,
 				25CC87B11F92855300A6EBFC /* Info.plist */,
 				65761B2523CF20EF004D5506 /* Floodgate.swift */,
@@ -696,6 +701,7 @@
 				585CD883239E6AF1004BE9CC /* Store.swift in Sources */,
 				585CD87F239E6A98004BE9CC /* Context.swift in Sources */,
 				9AD5D42D1F97375E00E6AE5A /* Property+System.swift in Sources */,
+				5BC88F88246AFC5900394C63 /* ReactiveSwift+FeedbackLoop.swift in Sources */,
 				656A9C9323D0813500EFB2F8 /* FeedbackLoop.swift in Sources */,
 				656A9C9723D0826100EFB2F8 /* FeedbackEventConsumer.swift in Sources */,
 				65761B2623CF20EF004D5506 /* Floodgate.swift in Sources */,
@@ -732,6 +738,7 @@
 				585CD884239E6AF1004BE9CC /* Store.swift in Sources */,
 				585CD880239E6A9A004BE9CC /* Context.swift in Sources */,
 				65F8C262218371A800924657 /* Property+System.swift in Sources */,
+				5BC88F89246AFC5900394C63 /* ReactiveSwift+FeedbackLoop.swift in Sources */,
 				656A9C9423D0813500EFB2F8 /* FeedbackLoop.swift in Sources */,
 				656A9C9823D0826100EFB2F8 /* FeedbackEventConsumer.swift in Sources */,
 				65761B2723CF20EF004D5506 /* Floodgate.swift in Sources */,
@@ -749,6 +756,7 @@
 				585CD885239E6AF1004BE9CC /* Store.swift in Sources */,
 				585CD881239E6A9B004BE9CC /* Context.swift in Sources */,
 				65F8C271218371AC00924657 /* Property+System.swift in Sources */,
+				5BC88F8A246AFC5900394C63 /* ReactiveSwift+FeedbackLoop.swift in Sources */,
 				656A9C9523D0813500EFB2F8 /* FeedbackLoop.swift in Sources */,
 				656A9C9923D0826100EFB2F8 /* FeedbackEventConsumer.swift in Sources */,
 				65761B2823CF20EF004D5506 /* Floodgate.swift in Sources */,
