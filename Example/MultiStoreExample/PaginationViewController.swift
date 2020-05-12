@@ -1,7 +1,7 @@
 import UIKit
 import ReactiveSwift
 import ReactiveCocoa
-import ReactiveFeedback
+import Loop
 
 final class PaginationViewController: UIViewController {
     private lazy var contentView = MoviesView.loadFromNib()

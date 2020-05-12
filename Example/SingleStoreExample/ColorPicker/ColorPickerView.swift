@@ -1,5 +1,5 @@
 import UIKit
-import ReactiveFeedback
+import Loop
 
 final class ColorPickerViewController: ContainerViewController<ColorPickerView> {
     private let store: Store<ColorPicker.State, ColorPicker.Event>
