@@ -98,7 +98,7 @@ extension FeedbackLoop {
         ///        .take(first: 1)
         ///        .concat(
         ///            state
-        ///                .filter { $0.apples.isEmpty }
+        ///                .filter { $0.apples.isEmpty } // ℹ️ Watching specifically for the ideal state.
         ///                .take(first: 1)
         ///                .on(value: { state in
         ///                    guard state.apples.isEmpty else { return }
