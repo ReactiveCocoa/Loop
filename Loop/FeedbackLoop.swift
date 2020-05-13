@@ -6,19 +6,10 @@ public final class FeedbackLoop<State, Event> {
     private let token: Lifetime.Token
 
     public var producer: SignalProducer<State, Never> {
-        SignalProducer { observer, lifetime in
-            self.floodgate.withValue { initial, hasStarted -> Void in
-                if hasStarted {
-                    // The feedback loop has started already, so the initial value has to be manually delivered.
-                    // Uninitialized feedback loop that does not start immediately will emit the initial state
-                    // when `start()` is called.
-                    observer.send(value: initial)
-                }
-
-                lifetime += self.floodgate.stateDidChange.observe(observer)
-            }
-        }
+        floodgate.producer
     }
+
+    private let feedbacks: [Feedback]
 
     public init(
         initial: State,
@@ -26,17 +17,14 @@ public final class FeedbackLoop<State, Event> {
         feedbacks: [Feedback]
     ) {
         (lifetime, token) = Lifetime.make()
-        floodgate = Floodgate<State, Event>(state: initial, reducer: reduce)
-        lifetime.observeEnded(floodgate.dispose)
+        self.floodgate = Floodgate<State, Event>(state: initial, reducer: reduce)
+        self.feedbacks = feedbacks
 
-        for feedback in feedbacks {
-            lifetime += feedback
-                .events(floodgate.stateDidChange.producer, floodgate)
-        }
+        lifetime.observeEnded(floodgate.dispose)
     }
 
     public func start() {
-        floodgate.bootstrap()
+        floodgate.bootstrap(with: feedbacks)
     }
 
     public func stop() {
@@ -71,7 +59,58 @@ extension FeedbackLoop {
         /// `Feedback(skippingRepeated:effects:)` enqueues events inside `flatMap(.latest)`, so that unprocessed events
         /// are automatically removed when the inner producer has switched.
         ///
-        /// - important: The `state` producer provided to the setup closure **does not** replay the current state.
+        /// ## State producer in the `setup` closure
+        /// The setup closure provides you a `state` producer — it replays the latest state at starting time, and then
+        /// publishes all state changes.
+        ///
+        /// Loop guarantees only that this `state` producer is **eventually consistent** with events emitted by your
+        /// feedback. This means you should not make any strong assumptions on events you enqueued being immediately
+        /// reflected by `state`.
+        ///
+        /// For example, if you start the `state` producer again, synchronously after enqueuing an event, the event
+        /// may not have been processed yet, and therefore the assertion would fail:
+        /// ```swift
+        /// Feedback { state, output in
+        ///     state
+        ///        .filter { $0.apples.isEmpty == false }
+        ///        .map(value: Event.eatAllApples)
+        ///        .take(first: 1)
+        ///        .concat(
+        ///            state
+        ///                .take(first: 1)
+        ///                .on(value: { state in
+        ///                    guard state.apples.isEmpty else { return }
+        ///
+        ///                    // ❌🙅‍♀️ No guarantee that this is true.
+        ///                    fatalError("It should have eaten all the apples!")
+        ///                })
+        ///        )
+        ///        .enqueue(to: output)
+        /// }
+        /// ```
+        ///
+        /// You can however expect it to be eventually consistent:
+        /// ```swift
+        /// Feedback { state, output in
+        ///     state
+        ///        .filter { $0.apples.isEmpty == false }
+        ///        .map(value: Event.eatAllApples)
+        ///        .take(first: 1)
+        ///        .concat(
+        ///            state
+        ///                .filter { $0.apples.isEmpty }
+        ///                .take(first: 1)
+        ///                .on(value: { state in
+        ///                    guard state.apples.isEmpty else { return }
+        ///
+        ///                    // ✅👍 We would eventually observe this, when the loop event queue
+        ///                    //      has caught up with `.eatAppleApples` we enqueued earlier.
+        ///                    fatalError("It should have eaten all the apples!")
+        ///                })
+        ///        )
+        ///        .enqueue(to: output)
+        /// }
+        /// ```
         ///
         /// - parameters:
         ///   - setup: The setup closure to construct a data flow producing events in respond to changes from `state`,

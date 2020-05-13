@@ -159,10 +159,10 @@ class FeedbackLoopSystemTests: XCTestCase {
         var values: [String] = []
         system
             .skipRepeats()
-            .take(first: 2)
+            .take(first: 3)
             .startWithValues { values.append($0) }
 
-        expect(values) == ["initial", "initial_a"]
+        expect(values) == ["initial", "initial_a", "initial_a_a"]
         expect(startCount) == 2
     }
 
@@ -303,5 +303,36 @@ class FeedbackLoopSystemTests: XCTestCase {
         semaphore.signal()
 
         expect(results).toEventually(equal([0, 1, 3, 6, 6, 7, 9, 12]))
+    }
+
+    func test_feedback_state_producer_replays_latest_value() {
+        let system = SignalProducer<Int, Never>.feedbackLoop(
+            initial: 0,
+            reduce: { (state: inout Int, event: Int) in
+                state += event
+            },
+            feedbacks: [
+                FeedbackLoop.Feedback { state, output in
+                    state
+                        .take(first: 1)
+                        .then(SignalProducer(value: 2))
+                        .concat(
+                            // `state` is NOT GUARANTEED to reflect events emitted earlier in the producer chain.
+                            state
+                                .take(first: 3)
+                                .map { $0 + 1000 }
+                        )
+                        .enqueue(to: output)
+                }
+            ]
+        )
+
+        var results: [Int] = []
+
+        system.startWithValues { value in
+            results.append(value)
+        }
+
+        expect(results) == [0, 2, 1002, 2004, 4006]
     }
 }
