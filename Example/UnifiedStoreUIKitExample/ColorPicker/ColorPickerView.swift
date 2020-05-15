@@ -1,7 +1,7 @@
 import UIKit
 import Loop
 
-final class ColorPickerViewController: ContainerViewController<ColorPickerView> {
+final class ColorPickerViewController: ContentViewController<ColorPickerView> {
     private let store: Loop<ColorPicker.State, ColorPicker.Event>
 
     init(store: Loop<ColorPicker.State, ColorPicker.Event>) {

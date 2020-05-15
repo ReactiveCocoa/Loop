@@ -1,7 +1,7 @@
 import UIKit
 import Loop
 
-final class MoviesViewController: ContainerViewController<MoviesView> {
+final class MoviesViewController: ContentViewController<MoviesView> {
     private let store: Loop<Movies.State, Movies.Event>
     
     init(store: Loop<Movies.State, Movies.Event>) {
@@ -12,20 +12,34 @@ final class MoviesViewController: ContainerViewController<MoviesView> {
     override func viewDidLoad() {
         super.viewDidLoad()
         store.context.startWithValues(contentView.render)
-        contentView.didSelectItem.action = { [unowned self] movie in
-            let nc = self.navigationController!
-            let vc = ColorPickerViewController(
-                store: self.store.scoped(
-                    to: \.colorPicker,
-                    event: Movies.Event.picker
-                )
-            )
-            nc.pushViewController(vc, animated: true)
-        }
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    override func willMove(toParent parent: UIViewController?) {
+        super.willMove(toParent: parent)
+
+        parent?.navigationItem.rightBarButtonItem = UIBarButtonItem(
+            image: UIImage(systemName: "eyedropper.halffull"),
+            style: .plain,
+            target: self,
+            action: #selector(showBackgroundColorPicker)
+        )
+    }
+
+    @objc private func showBackgroundColorPicker() {
+        guard let navigationController = self.navigationController else { return }
+
+        let colorPickerVC = ColorPickerViewController(
+            store: self.store.scoped(
+                to: \.colorPicker,
+                event: Movies.Event.picker
+            )
+        )
+
+        navigationController.pushViewController(colorPickerVC, animated: true)
     }
 }
 
