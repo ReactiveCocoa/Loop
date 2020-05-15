@@ -1,7 +1,7 @@
 import UIKit
 import Loop
 
-final class CounterViewController: ContainerViewController<CounterView> {
+final class CounterViewController: ContentViewController<CounterView> {
     private let store: Loop<Counter.State, Counter.Event>
 
     init(store: Loop<Counter.State, Counter.Event>) {

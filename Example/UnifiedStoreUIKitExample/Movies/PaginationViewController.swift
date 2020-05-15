@@ -3,34 +3,6 @@ import ReactiveSwift
 import ReactiveCocoa
 import Loop
 
-final class PaginationViewController: UIViewController {
-    private lazy var contentView = MoviesView.loadFromNib()
-    private let viewModel = Movies.ViewModel()
-
-    override func loadView() {
-        self.view = contentView
-    }
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        viewModel.store.context.startWithValues(contentView.render)
-    }
-}
-
-extension Movies {
-    final class ViewModel {
-        let store: Loop<State, Event>
-
-        init() {
-            store = .init(
-                initial: Movies.State(),
-                reducer: Movies.reduce,
-                feedbacks: [Movies.feedback]
-            )
-        }
-    }
-}
-
 // Key for https://www.themoviedb.org API
 let correctKey = "d4f0bdb3e246e2cb3555211e765c89e3"
 
@@ -102,30 +74,5 @@ extension URLSession {
             lifetime += AnyDisposable(task.cancel)
             task.resume()
         })
-    }
-}
-
-final class ArrayCollectionViewDataSource<T>: NSObject, UICollectionViewDataSource {
-    typealias CellFactory = (UICollectionView, IndexPath, T) -> UICollectionViewCell
-
-    private(set) var items: [T] = []
-    var cellFactory: CellFactory!
-
-    func update(with items: [T]) {
-        self.items = items
-    }
-
-    func item(atIndexPath indexPath: IndexPath) -> T {
-        return items[indexPath.row]
-    }
-
-    // MARK: UICollectionViewDataSource
-
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return items.count
-    }
-
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        return cellFactory(collectionView, indexPath, item(atIndexPath: indexPath))
     }
 }
