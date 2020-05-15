@@ -59,7 +59,8 @@ class FeedbackLoopSystemTests: XCTestCase {
             reduce: { (state, event) in
                 state += event
             },
-            feedbacks: feedback1, feedback2)
+            feedbacks: feedback1, feedback2
+        )
 
         var result: [String]!
         system.take(first: 5)
@@ -158,10 +159,10 @@ class FeedbackLoopSystemTests: XCTestCase {
         var values: [String] = []
         system
             .skipRepeats()
-            .take(first: 2)
+            .take(first: 3)
             .startWithValues { values.append($0) }
 
-        expect(values) == ["initial", "initial_a"]
+        expect(values) == ["initial", "initial_a", "initial_a_a"]
         expect(startCount) == 2
     }
 
@@ -186,7 +187,6 @@ class FeedbackLoopSystemTests: XCTestCase {
                                 .map(value: "_event")
                                 .on(terminated: { semaphore.signal() })
                                 .enqueue(to: output)
-                                .start()
                         }
                     ]
                 )
@@ -241,5 +241,98 @@ class FeedbackLoopSystemTests: XCTestCase {
         let expected = [0, 1, 2]
 
         expect(result).toEventually(equal(expected))
+    }
+
+    func test_external_source_events_are_not_cancelled_when_source_completes() {
+        enum Event {
+            case increment(by: Int)
+            case timeConsumingWork
+        }
+
+        let semaphore = DispatchSemaphore(value: 0)
+
+        let (increments, incrementObserver) = Signal<Int, Never>.pipe()
+        let (workTrigger, workTriggerObserver) = Signal<Void, Never>.pipe()
+
+        let system = SignalProducer<Int, Never>.feedbackLoop(
+            initial: 0,
+            reduce: { (state, event) in
+                switch event {
+                case let .increment(steps):
+                    state += steps
+
+                case .timeConsumingWork:
+                    semaphore.wait()
+                }
+            },
+            feedbacks: [
+                FeedbackLoop.Feedback(source: increments, as: Event.increment(by:)),
+                FeedbackLoop.Feedback(source: workTrigger, as: { .timeConsumingWork })
+            ]
+        )
+
+        var results: [Int] = []
+
+        system.startWithValues { value in
+            results.append(value)
+        }
+
+        expect(results) == [0]
+
+        incrementObserver.send(value: 1)
+        incrementObserver.send(value: 2)
+        incrementObserver.send(value: 3)
+        expect(results) == [0, 1, 3, 6]
+
+        waitUntil { done in
+            DispatchQueue.global(qos: .userInteractive).async {
+                done()
+                workTriggerObserver.send(value: ())
+            }
+        }
+
+        // Sleep for 500us so that we continue the assertions after `workTriggerObserver.send(value: ())` is invoked.
+        usleep(500)
+
+        incrementObserver.send(value: 1)
+        incrementObserver.send(value: 2)
+        incrementObserver.send(value: 3)
+        incrementObserver.sendCompleted()
+
+        // Allow the reducer running in background to proceed.
+        semaphore.signal()
+
+        expect(results).toEventually(equal([0, 1, 3, 6, 6, 7, 9, 12]))
+    }
+
+    func test_feedback_state_producer_replays_latest_value() {
+        let system = SignalProducer<Int, Never>.feedbackLoop(
+            initial: 0,
+            reduce: { (state: inout Int, event: Int) in
+                state += event
+            },
+            feedbacks: [
+                FeedbackLoop.Feedback { state, output in
+                    state
+                        .take(first: 1)
+                        .then(SignalProducer(value: 2))
+                        .concat(
+                            // `state` is NOT GUARANTEED to reflect events emitted earlier in the producer chain.
+                            state
+                                .take(first: 3)
+                                .map { $0 + 1000 }
+                        )
+                        .enqueue(to: output)
+                }
+            ]
+        )
+
+        var results: [Int] = []
+
+        system.startWithValues { value in
+            results.append(value)
+        }
+
+        expect(results) == [0, 2, 1002, 2004, 4006]
     }
 }

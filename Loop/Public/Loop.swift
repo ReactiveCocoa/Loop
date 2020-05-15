@@ -30,12 +30,10 @@ public final class Loop<State, Event> {
         reducer: @escaping (inout State, Event) -> Void,
         feedbacks: [Loop<State, Event>.Feedback]
     ) {
-        box = RootLoopBox(
-            initial: initial,
-            reducer: reducer,
-            feedbacks: feedbacks,
-            startImmediately: true
-        )
+        let box = RootLoopBox(initial: initial, reducer: reducer)
+        box.start(with: feedbacks)
+
+        self.box = box
     }
 
     public func send(_ event: Event) {

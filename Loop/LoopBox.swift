@@ -50,40 +50,18 @@ internal class RootLoopBox<State, Event>: LoopBoxBase<State, Event> {
     private let input = Loop<State, Event>.Feedback.input
 
     override var producer: SignalProducer<State, Never> {
-        SignalProducer { observer, lifetime in
-            self.floodgate.withValue { initial, hasStarted -> Void in
-                if hasStarted {
-                    // The feedback loop has started already, so the initial value has to be manually delivered.
-                    // Uninitialized feedback loop that does not start immediately will emit the initial state
-                    // when `start()` is called.
-                    observer.send(value: initial)
-                }
-
-                lifetime += self.floodgate.stateDidChange.observe(observer)
-            }
-        }
+        floodgate.producer
     }
 
     init(
         initial: State,
-        reducer: @escaping (inout State, Event) -> Void,
-        feedbacks: [Loop<State, Event>.Feedback],
-        startImmediately: Bool
+        reducer: @escaping (inout State, Event) -> Void
     ) {
         (_lifetime, token) = Lifetime.make()
         floodgate = Floodgate<State, Event>(state: initial, reducer: reducer)
         _lifetime.observeEnded(floodgate.dispose)
 
-        for feedback in feedbacks + [input.feedback] {
-            _lifetime += feedback
-                .events(floodgate.stateDidChange.producer, floodgate)
-        }
-
         super.init()
-
-        if startImmediately {
-            self.start()
-        }
     }
 
     override func scoped<S, E>(
@@ -93,8 +71,8 @@ internal class RootLoopBox<State, Event>: LoopBoxBase<State, Event> {
         ScopedLoopBox(root: self, value: scope, event: event)
     }
 
-    func start() {
-        floodgate.bootstrap()
+    func start(with feedbacks: [Loop<State, Event>.Feedback]) {
+        floodgate.bootstrap(with: feedbacks)
     }
 
     func stop() {

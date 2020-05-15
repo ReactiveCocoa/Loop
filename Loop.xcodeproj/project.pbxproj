@@ -34,6 +34,9 @@
 		5898B6D11F97ADDD005EEAEC /* SystemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5898B6D01F97ADDD005EEAEC /* SystemTests.swift */; };
 		5BC88F842469CBA300394C63 /* Nimble.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BC88F832469CBA300394C63 /* Nimble.framework */; };
 		5BC88F862469CBAB00394C63 /* Nimble.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BC88F852469CBAB00394C63 /* Nimble.framework */; };
+		5BC88F88246AFC5900394C63 /* ReactiveSwift+EnqueueTo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC88F87246AFC5900394C63 /* ReactiveSwift+EnqueueTo.swift */; };
+		5BC88F89246AFC5900394C63 /* ReactiveSwift+EnqueueTo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC88F87246AFC5900394C63 /* ReactiveSwift+EnqueueTo.swift */; };
+		5BC88F8A246AFC5900394C63 /* ReactiveSwift+EnqueueTo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC88F87246AFC5900394C63 /* ReactiveSwift+EnqueueTo.swift */; };
 		5BC88F8E246B11DE00394C63 /* LoopBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC88F8D246B11DE00394C63 /* LoopBox.swift */; };
 		5BC88F8F246B11DE00394C63 /* LoopBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC88F8D246B11DE00394C63 /* LoopBox.swift */; };
 		5BC88F90246B11DE00394C63 /* LoopBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC88F8D246B11DE00394C63 /* LoopBox.swift */; };
@@ -191,6 +194,7 @@
 		5898B6D01F97ADDD005EEAEC /* SystemTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SystemTests.swift; sourceTree = "<group>"; };
 		5BC88F832469CBA300394C63 /* Nimble.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Nimble.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		5BC88F852469CBAB00394C63 /* Nimble.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Nimble.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		5BC88F87246AFC5900394C63 /* ReactiveSwift+EnqueueTo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ReactiveSwift+EnqueueTo.swift"; sourceTree = "<group>"; };
 		5BC88F8D246B11DE00394C63 /* LoopBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopBox.swift; sourceTree = "<group>"; };
 		5BC88F91246B17B200394C63 /* Context.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Context.swift; sourceTree = "<group>"; };
 		5BC88F97246B191200394C63 /* Loop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loop.swift; sourceTree = "<group>"; };
@@ -400,6 +404,7 @@
 				5BC88F91246B17B200394C63 /* Context.swift */,
 				585CD87A239E6A39004BE9CC /* Reducer.swift */,
 				656A9C9623D0826100EFB2F8 /* FeedbackEventConsumer.swift */,
+				5BC88F87246AFC5900394C63 /* ReactiveSwift+EnqueueTo.swift */,
 			);
 			path = Public;
 			sourceTree = "<group>";
@@ -722,6 +727,7 @@
 				5BC88F92246B17B200394C63 /* Context.swift in Sources */,
 				585CD87B239E6A39004BE9CC /* Reducer.swift in Sources */,
 				9AD5D42D1F97375E00E6AE5A /* Property+System.swift in Sources */,
+				5BC88F88246AFC5900394C63 /* ReactiveSwift+EnqueueTo.swift in Sources */,
 				656A9C9323D0813500EFB2F8 /* FeedbackLoop.swift in Sources */,
 				656A9C9723D0826100EFB2F8 /* FeedbackEventConsumer.swift in Sources */,
 				5BC88F8E246B11DE00394C63 /* LoopBox.swift in Sources */,
@@ -760,6 +766,7 @@
 				5BC88F93246B17B200394C63 /* Context.swift in Sources */,
 				585CD87C239E6A3E004BE9CC /* Reducer.swift in Sources */,
 				65F8C262218371A800924657 /* Property+System.swift in Sources */,
+				5BC88F89246AFC5900394C63 /* ReactiveSwift+EnqueueTo.swift in Sources */,
 				656A9C9423D0813500EFB2F8 /* FeedbackLoop.swift in Sources */,
 				656A9C9823D0826100EFB2F8 /* FeedbackEventConsumer.swift in Sources */,
 				5BC88F8F246B11DE00394C63 /* LoopBox.swift in Sources */,
@@ -779,6 +786,7 @@
 				5BC88F94246B17B200394C63 /* Context.swift in Sources */,
 				585CD87D239E6A3E004BE9CC /* Reducer.swift in Sources */,
 				65F8C271218371AC00924657 /* Property+System.swift in Sources */,
+				5BC88F8A246AFC5900394C63 /* ReactiveSwift+EnqueueTo.swift in Sources */,
 				656A9C9523D0813500EFB2F8 /* FeedbackLoop.swift in Sources */,
 				656A9C9923D0826100EFB2F8 /* FeedbackEventConsumer.swift in Sources */,
 				5BC88F90246B11DE00394C63 /* LoopBox.swift in Sources */,

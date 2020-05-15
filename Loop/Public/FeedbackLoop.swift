@@ -4,31 +4,102 @@ extension Loop {
     public struct Feedback {
         let events: (_ state: SignalProducer<State, Never>, _ output: FeedbackEventConsumer<Event>) -> Disposable
 
-        public init(
-            events: @escaping (
-            _ state: SignalProducer<State, Never>,
-            _ output: FeedbackEventConsumer<Event>
-            ) -> Disposable
+        /// Private designated initializer. See the public designated initializer below.
+        fileprivate init(
+            startWith events: @escaping (_ state: SignalProducer<State, Never>, _ output: FeedbackEventConsumer<Event>) -> Disposable
         ) {
             self.events = events
         }
 
         /// Creates a custom Feedback, with the complete liberty of defining the data flow.
         ///
-        /// - important: While you may respond to state changes in whatever ways you prefer, you **must** enqueue produced
-        ///              events using the `SignalProducer.enqueue(to:)` operator to the `FeedbackEventConsumer` provided
-        ///              to you. Otherwise, the feedback loop will not be able to pick up and process your events.
+        /// Consider using the standard `Feedback` variants, before deriving down to use this desginated initializer.
+        ///
+        /// Events must be explicitly enqueued using `SignalProducer.enqueue(to:)` with the `FeedbackEventConsumer`
+        /// provided to the setup closure. `enqueue(to:)` respects producer cancellation and removes outstanding events
+        /// from the loop internal event queue.
+        ///
+        /// This is useful if you wish to discard events when the state changes in certain ways. For example,
+        /// `Feedback(skippingRepeated:effects:)` enqueues events inside `flatMap(.latest)`, so that unprocessed events
+        /// are automatically removed when the inner producer has switched.
+        ///
+        /// ## State producer in the `setup` closure
+        /// The setup closure provides you a `state` producer — it replays the latest state at starting time, and then
+        /// publishes all state changes.
+        ///
+        /// Loop guarantees only that this `state` producer is **eventually consistent** with events emitted by your
+        /// feedback. This means you should not make any strong assumptions on events you enqueued being immediately
+        /// reflected by `state`.
+        ///
+        /// For example, if you start the `state` producer again, synchronously after enqueuing an event, the event
+        /// may not have been processed yet, and therefore the assertion would fail:
+        /// ```swift
+        /// Feedback { state, output in
+        ///     state
+        ///        .filter { $0.apples.isEmpty == false }
+        ///        .map(value: Event.eatAllApples)
+        ///        .take(first: 1)
+        ///        .concat(
+        ///            state
+        ///                .take(first: 1)
+        ///                .on(value: { state in
+        ///                    guard state.apples.isEmpty else { return }
+        ///
+        ///                    // ❌🙅‍♀️ No guarantee that this is true.
+        ///                    fatalError("It should have eaten all the apples!")
+        ///                })
+        ///        )
+        ///        .enqueue(to: output)
+        /// }
+        /// ```
+        ///
+        /// You can however expect it to be eventually consistent:
+        /// ```swift
+        /// Feedback { state, output in
+        ///     state
+        ///        .filter { $0.apples.isEmpty == false }
+        ///        .map(value: Event.eatAllApples)
+        ///        .take(first: 1)
+        ///        .concat(
+        ///            state
+        ///                .filter { $0.apples.isEmpty } // ℹ️ Watching specifically for the ideal state.
+        ///                .take(first: 1)
+        ///                .on(value: { state in
+        ///                    guard state.apples.isEmpty else { return }
+        ///
+        ///                    // ✅👍 We would eventually observe this, when the loop event queue
+        ///                    //      has caught up with `.eatAppleApples` we enqueued earlier.
+        ///                    fatalError("It should have eaten all the apples!")
+        ///                })
+        ///        )
+        ///        .enqueue(to: output)
+        /// }
+        /// ```
         ///
         /// - parameters:
         ///   - setup: The setup closure to construct a data flow producing events in respond to changes from `state`,
         ///             and having them consumed by `output` using the `SignalProducer.enqueue(to:)` operator.
-        public static func custom(
-            _ setup: @escaping (
+        public init(
+            events: @escaping (
                 _ state: SignalProducer<State, Never>,
                 _ output: FeedbackEventConsumer<Event>
-            ) -> Disposable
-        ) -> Feedback {
-            return Feedback(events: setup)
+            ) -> SignalProducer<Never, Never>
+        ) {
+            self.events = { events($0, $1).start() }
+        }
+
+        /// Creates a Feedback that observes an external producer and maps it to an event.
+        ///
+        /// - parameters:
+        ///   - setup: The setup closure to construct a data flow producing events in respond to changes from `state`,
+        ///             and having them consumed by `output` using the `SignalProducer.enqueue(to:)` operator.
+        public init<Values: SignalProducerConvertible>(
+            source: Values,
+            as transform: @escaping (Values.Value) -> Event
+        ) where Values.Error == Never {
+            self.init { _, output in
+                source.producer.map(transform).enqueueNonCancelling(to: output)
+            }
         }
 
         /// Creates a Feedback which re-evaluates the given effect every time the
@@ -133,9 +204,7 @@ extension Loop {
         
         public static var input: (feedback: Feedback, observer: (Event) -> Void) {
             let pipe = Signal<Event, Never>.pipe()
-            let feedback = Feedback.custom { (state, consumer) -> Disposable in
-                pipe.output.producer.enqueue(to: consumer).start()
-            }
+            let feedback = Feedback(source: pipe.output, as: { $0 })
             return (feedback, pipe.input.send)
         }
         
@@ -144,23 +213,45 @@ extension Loop {
             value: KeyPath<State, LocalState>,
             event: @escaping (LocalEvent) -> Event
         ) -> Feedback {
-            return Feedback.custom { (state, consumer) -> Disposable in
+            return Feedback(startWith: { (state, consumer) in
                 return feedback.events(
                     state.map(value),
                     consumer.pullback(event)
                 )
-            }
+            })
         }
         
         public static func combine(_ feedbacks: Loop<State, Event>.Feedback...) -> Feedback {
-            return .custom { (state, consumer) -> Disposable in
+            return Feedback(startWith: { (state, consumer) in
                 return feedbacks.map { (feedback) in
                     feedback.events(state, consumer)
                 }
                 .reduce(into: CompositeDisposable()) { (composite, disposable) in
                     composite += disposable
                 }
-            }
+            })
         }
+    }
+}
+
+extension Loop.Feedback {
+    @available(*, deprecated, renamed:"init(_:)")
+    public static func custom(
+        _ setup: @escaping (
+            _ state: SignalProducer<State, Never>,
+            _ output: FeedbackEventConsumer<Event>
+        ) -> Disposable
+    ) -> Loop.Feedback {
+        return FeedbackLoop.Feedback(events: setup)
+    }
+
+    @available(*, deprecated, renamed:"init(_:)")
+    public init(
+        events: @escaping (
+            _ state: SignalProducer<State, Never>,
+            _ output: FeedbackEventConsumer<Event>
+        ) -> Disposable
+    ) {
+        self.events = { events($0.producer, $1) }
     }
 }

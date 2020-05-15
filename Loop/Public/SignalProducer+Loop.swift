@@ -18,14 +18,11 @@ extension SignalProducer where Error == Never {
         feedbacks: [Loop<Value, Event>.Feedback]
     ) -> SignalProducer<Value, Never> {
         return SignalProducer.deferred { downstreamLifetime in
-             let feedbackLoop = RootLoopBox(
-                 initial: initial,
-                 reducer: reduce,
-                 feedbacks: feedbacks,
-                 startImmediately: false
-             )
-             downstreamLifetime.observeEnded(feedbackLoop.stop)
-             return feedbackLoop.producer.on(started: feedbackLoop.start)
+            let feedbackLoop = RootLoopBox(initial: initial, reducer: reduce)
+            downstreamLifetime.observeEnded(feedbackLoop.stop)
+            return feedbackLoop.producer.on(started: {
+                feedbackLoop.start(with: feedbacks)
+            })
          }
     }
 

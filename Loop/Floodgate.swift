@@ -13,28 +13,42 @@ final class Floodgate<State, Event>: FeedbackEventConsumer<Event> {
 
     let (stateDidChange, changeObserver) = Signal<State, Never>.pipe()
 
+    /// Replay the current value, and then publish the subsequent changes.
+    var producer: SignalProducer<State, Never> {
+        SignalProducer { observer, lifetime in
+            self.withValue { initial, hasStarted -> Void in
+                observer.send(value: initial)
+                lifetime += self.stateDidChange.observe(observer)
+            }
+        }
+    }
+
     private let reducerLock = NSLock()
     private var state: State
     private var hasStarted = false
 
     private let queue = Atomic(QueueState())
     private let reducer: (inout State, Event) -> Void
+    private let feedbackDisposables = CompositeDisposable()
 
     init(state: State, reducer: @escaping (inout State, Event) -> Void) {
         self.state = state
         self.reducer = reducer
     }
 
-    func bootstrap() {
-        reducerLock.lock()
-        defer { reducerLock.unlock() }
+    deinit {
+        dispose()
+    }
 
-        guard !hasStarted else { return }
+    func bootstrap(with feedbacks: [FeedbackLoop<State, Event>.Feedback]) {
+        for feedback in feedbacks {
+            // Pass `producer` which has replay-1 semantic.
+            feedbackDisposables += feedback.events(producer, self)
+        }
 
-        hasStarted = true
-
-        changeObserver.send(value: state)
-        drainEvents()
+        reducerLock.perform {
+            drainEvents()
+        }
     }
 
     override func process(_ event: Event, for token: Token) {
@@ -77,8 +91,14 @@ final class Floodgate<State, Event>: FeedbackEventConsumer<Event> {
     }
 
     func dispose() {
-        queue.modify {
+        let shouldDisposeFeedbacks: Bool = queue.modify {
+            let old = $0.isOuterLifetimeEnded
             $0.isOuterLifetimeEnded = true
+            return old == false
+        }
+
+        if shouldDisposeFeedbacks {
+            feedbackDisposables.dispose()
         }
     }
 
@@ -103,18 +123,5 @@ final class Floodgate<State, Event>: FeedbackEventConsumer<Event> {
     private func consume(_ event: Event) {
         reducer(&state, event)
         changeObserver.send(value: state)
-    }
-}
-
-extension SignalProducer where Error == Never {
-    public func enqueue(to consumer: FeedbackEventConsumer<Value>) -> SignalProducer<Never, Never> {
-        SignalProducer<Never, Never> { observer, lifetime in
-            let token = Token()
-
-            lifetime += self.startWithValues { event in
-                consumer.process(event, for: token)
-            }
-            lifetime.observeEnded { consumer.dequeueAllEvents(for: token) }
-        }
     }
 }
