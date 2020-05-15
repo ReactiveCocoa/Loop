@@ -1,4 +1,5 @@
-# ReactiveFeedback
+
+![](diagrams/rac-loop.png)
 
 Unidirectional Reactive Architecture. This is a [ReactiveSwift](https://github.com/ReactiveCocoa/ReactiveSwift) counterpart of [RxFeedback](https://github.com/kzaher/RxFeedback).
 
