@@ -2,21 +2,21 @@ import UIKit
 import Loop
 
 final class MoviesViewController: ContainerViewController<MoviesView> {
-    private let store: Store<Movies.State, Movies.Event>
+    private let store: Loop<Movies.State, Movies.Event>
     
-    init(store: Store<Movies.State, Movies.Event>) {
+    init(store: Loop<Movies.State, Movies.Event>) {
         self.store = store
         super.init()
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        store.state.producer.startWithValues(contentView.render)
+        store.context.startWithValues(contentView.render)
         contentView.didSelectItem.action = { [unowned self] movie in
             let nc = self.navigationController!
             let vc = ColorPickerViewController(
-                store: self.store.view(
-                    value: \.colorPicker,
+                store: self.store.scoped(
+                    to: \.colorPicker,
                     event: Movies.Event.picker
                 )
             )

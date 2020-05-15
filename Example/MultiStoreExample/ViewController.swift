@@ -16,14 +16,16 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        viewModel.state.producer.startWithValues(contentView.render)
+        viewModel.store.context.startWithValues(contentView.render)
     }
 }
 
 extension Counter {
-    final class ViewModel: Store<State, Event> {
+    final class ViewModel {
+        let store: Loop<State, Event>
+
         init() {
-            super.init(
+            store = .init(
                 initial: State(),
                 reducer: Counter.reduce,
                 feedbacks: []

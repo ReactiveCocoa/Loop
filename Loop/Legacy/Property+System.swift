@@ -1,7 +1,7 @@
 import ReactiveSwift
 
 extension Property {
-    @available(*, deprecated, message:"Please migrate to FeedbackLoop")
+    @available(*, deprecated, message:"Please migrate to Loop")
     public convenience init<Event>(
         initial: Value,
         scheduler: Scheduler = QueueScheduler.main,
@@ -19,7 +19,7 @@ extension Property {
         self.init(capturing: state)
     }
 
-    @available(*, deprecated, message:"Please migrate to FeedbackLoop")
+    @available(*, deprecated, message:"Please migrate to Loop")
     public convenience init<Event>(
         initial: Value,
         scheduler: Scheduler = QueueScheduler.main,

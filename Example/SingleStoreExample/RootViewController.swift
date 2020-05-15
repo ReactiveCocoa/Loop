@@ -3,7 +3,7 @@ import ReactiveSwift
 import UIKit
 
 final class RootViewController: UITabBarController {
-    private let store: Store<State, Event>
+    private let store: Loop<State, Event>
 
     init() {
         let appReducer: Reducer<State, Event> = combine(
@@ -19,14 +19,14 @@ final class RootViewController: UITabBarController {
             )
         )
 
-        let appFeedbacks: FeedbackLoop<State, Event>.Feedback = FeedbackLoop<State, Event>.Feedback.combine(
-            FeedbackLoop<State, Event>.Feedback.pullback(
+        let appFeedbacks: Loop<State, Event>.Feedback = Loop<State, Event>.Feedback.combine(
+            Loop<State, Event>.Feedback.pullback(
                 feedback: Movies.feedback,
                 value: \.movies,
                 event: Event.movies
             )
         )
-        store = Store(
+        store = Loop(
             initial: State(),
             reducer: appReducer,
             feedbacks: [appFeedbacks]
@@ -41,14 +41,14 @@ final class RootViewController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
         let counterVC = CounterViewController(
-            store: store.view(
-                value: \.counter,
+            store: store.scoped(
+                to: \.counter,
                 event: Event.counter
             )
         )
         let moviesVC = MoviesViewController(
-            store: store.view(
-                value: \.movies,
+            store: store.scoped(
+                to: \.movies,
                 event: Event.movies
             )
         )
