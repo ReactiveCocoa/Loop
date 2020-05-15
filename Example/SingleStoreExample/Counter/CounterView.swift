@@ -1,17 +1,17 @@
 import UIKit
-import ReactiveFeedback
+import Loop
 
 final class CounterViewController: ContainerViewController<CounterView> {
-    private let store: Store<Counter.State, Counter.Event>
+    private let store: Loop<Counter.State, Counter.Event>
 
-    init(store: Store<Counter.State, Counter.Event>) {
+    init(store: Loop<Counter.State, Counter.Event>) {
         self.store = store
         super.init()
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        store.state.producer.startWithValues(contentView.render)
+        store.context.startWithValues(contentView.render)
     }
 
     required init?(coder: NSCoder) {

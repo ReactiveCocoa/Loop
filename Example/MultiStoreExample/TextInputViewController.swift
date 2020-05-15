@@ -1,7 +1,7 @@
 import UIKit
 import ReactiveSwift
 import ReactiveCocoa
-import ReactiveFeedback
+import Loop
 
 
 class TextInputViewController: UIViewController {
@@ -31,8 +31,7 @@ class TextInputViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        viewModel.state.start()
-        
+
         textView.reactive.continuousTextValues
             .take(duringLifetimeOf: self)
             .observeValues { [viewModel] in viewModel.textDidChange($0) }
@@ -51,13 +50,13 @@ class TextInputViewController: UIViewController {
 }
 
 final class TextInputViewModel {
-    let state: FeedbackLoop<String, Event>
+    let state: Loop<String, Event>
     private let (text, textObserver) = Signal<String, Never>.pipe()
 
     init() {
-        self.state = FeedbackLoop<String, Event>(
+        self.state = Loop<String, Event>(
             initial: "Lorem ipsum ",
-            reduce: TextInputViewModel.reduce,
+            reducer: TextInputViewModel.reduce,
             feedbacks: [.custom { [text] (state, consumer) in
                 text.producer.map(Event.update).enqueue(to: consumer).start()
             }]

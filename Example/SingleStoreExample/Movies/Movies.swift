@@ -1,5 +1,5 @@
 import Foundation
-import ReactiveFeedback
+import Loop
 import ReactiveSwift
 import UIKit
 
@@ -107,7 +107,7 @@ enum Movies {
         }
     }
 
-    static var feedback: FeedbackLoop<State, Event>.Feedback {
+    static var feedback: Loop<State, Event>.Feedback {
         return .combine(
             pagingFeedback(),
             retryPagingFeedback()
@@ -146,8 +146,8 @@ enum Movies {
         }
     }
 
-    private static func pagingFeedback() -> FeedbackLoop<State, Event>.Feedback {
-        return FeedbackLoop<State, Event>.Feedback(skippingRepeated: { $0.nextPage }) { nextPage in
+    private static func pagingFeedback() -> Loop<State, Event>.Feedback {
+        return Loop<State, Event>.Feedback(skippingRepeated: { $0.nextPage }) { nextPage in
             return URLSession.shared.fetchMovies(page: nextPage)
                 .observe(on: UIScheduler())
                 .map(Event.response)
@@ -157,7 +157,7 @@ enum Movies {
         }
     }
 
-    private static func retryPagingFeedback() -> FeedbackLoop<State, Event>.Feedback {
+    private static func retryPagingFeedback() -> Loop<State, Event>.Feedback {
         return .init(skippingRepeated: { $0.retryPage }) { nextPage in
             URLSession.shared.fetchMovies(page: nextPage)
                 .observe(on: UIScheduler())

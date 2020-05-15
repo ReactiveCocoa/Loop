@@ -1,7 +1,7 @@
 import UIKit
 import ReactiveSwift
 import ReactiveCocoa
-import ReactiveFeedback
+import Loop
 
 final class PaginationViewController: UIViewController {
     private lazy var contentView = MoviesView.loadFromNib()
@@ -13,14 +13,16 @@ final class PaginationViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        viewModel.state.producer.startWithValues(contentView.render)
+        viewModel.store.context.startWithValues(contentView.render)
     }
 }
 
 extension Movies {
-    final class ViewModel: Store<State, Event> {
+    final class ViewModel {
+        let store: Loop<State, Event>
+
         init() {
-            super.init(
+            store = .init(
                 initial: Movies.State(),
                 reducer: Movies.reduce,
                 feedbacks: [Movies.feedback]

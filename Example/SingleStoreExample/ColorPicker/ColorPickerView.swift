@@ -1,10 +1,10 @@
 import UIKit
-import ReactiveFeedback
+import Loop
 
 final class ColorPickerViewController: ContainerViewController<ColorPickerView> {
-    private let store: Store<ColorPicker.State, ColorPicker.Event>
+    private let store: Loop<ColorPicker.State, ColorPicker.Event>
 
-    init(store: Store<ColorPicker.State, ColorPicker.Event>) {
+    init(store: Loop<ColorPicker.State, ColorPicker.Event>) {
         self.store = store
         super.init()
     }
@@ -15,13 +15,18 @@ final class ColorPickerViewController: ContainerViewController<ColorPickerView> 
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        store.state.producer.startWithValues(contentView.render)
+
+        store.context.startWithValues(contentView.render)
+        contentView.didSelect.action = { [weak self] in
+            self?.navigationController?.popViewController(animated: true)
+        }
     }
 }
 
 final class ColorPickerView: UIView, NibLoadable {
     @IBOutlet var stackView: UIStackView!
     let didTapButton = CommandWith<UIColor>()
+    let didSelect = Command()
 
     func render(context: Context<ColorPicker.State, ColorPicker.Event>) {
         zip(stackView.arrangedSubviews, context.colors).forEach { (view, color) in
@@ -34,5 +39,6 @@ final class ColorPickerView: UIView, NibLoadable {
 
     @IBAction func didTapButton(sender: UIButton) {
         didTapButton.action(sender.backgroundColor ?? .clear)
+        didSelect.action()
     }
 }
