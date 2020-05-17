@@ -72,7 +72,7 @@ internal class RootLoopBox<State, Event>: LoopBoxBase<State, Event> {
     }
 
     func start(with feedbacks: [Loop<State, Event>.Feedback]) {
-        floodgate.bootstrap(with: feedbacks)
+        floodgate.bootstrap(with: feedbacks + [input.feedback])
     }
 
     func stop() {
