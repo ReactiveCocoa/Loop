@@ -20,6 +20,10 @@ struct RootView: View {
                 CardNavigationLink(label: "Unified Store + UIKit", color: .blue) {
                     UnifiedStoreUIKitHomeView()
                 }
+
+                CardNavigationLink(label: "SwiftUI: Basic Binding", color: .orange) {
+                    SwiftUIBasicBindingHomeView()
+                }
             }
             .navigationBarTitle("Loop Examples")
             .navigationBarHidden(true)

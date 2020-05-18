@@ -9,6 +9,11 @@ internal class ScopedLoopBox<RootState, RootEvent, ScopedState, ScopedEvent>: Lo
         root.lifetime
     }
 
+    /// Loop Internal SPI
+    override var _current: ScopedState {
+        root._current[keyPath: value]
+    }
+
     private let root: LoopBoxBase<RootState, RootEvent>
     private let value: KeyPath<RootState, ScopedState>
     private let eventTransform: (ScopedEvent) -> RootEvent
@@ -42,6 +47,11 @@ internal class ScopedLoopBox<RootState, RootEvent, ScopedState, ScopedEvent>: Lo
 internal class RootLoopBox<State, Event>: LoopBoxBase<State, Event> {
     override var lifetime: Lifetime {
         _lifetime
+    }
+
+    /// Loop Internal SPI
+    override var _current: State {
+        floodgate.withValue { state, _ in state }
     }
 
     let floodgate: Floodgate<State, Event>
@@ -89,6 +99,9 @@ internal class RootLoopBox<State, Event>: LoopBoxBase<State, Event> {
 }
 
 internal class LoopBoxBase<State, Event> {
+    /// Loop Internal SPI
+    var _current: State { subclassMustImplement() }
+
     var lifetime: Lifetime { subclassMustImplement() }
     var producer: SignalProducer<State, Never> { subclassMustImplement() }
 
