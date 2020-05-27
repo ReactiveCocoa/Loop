@@ -320,6 +320,7 @@ class FeedbackLoopSystemTests: XCTestCase {
                             // `state` is NOT GUARANTEED to reflect events emitted earlier in the producer chain.
                             state
                                 .take(first: 3)
+                                .map(\.0)
                                 .map { $0 + 1000 }
                         )
                         .enqueue(to: output)
