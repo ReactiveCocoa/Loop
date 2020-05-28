@@ -1,3 +1,5 @@
+#if canImport(SwiftUI) && canImport(Combine)
+
 import SwiftUI
 import Combine
 import ReactiveSwift
@@ -47,3 +49,5 @@ public struct LoopBinding<State, Event>: DynamicProperty {
         loop.send(event)
     }
 }
+
+#endif

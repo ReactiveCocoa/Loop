@@ -1,3 +1,5 @@
+#if canImport(SwiftUI) && canImport(Combine)
+
 import SwiftUI
 import Combine
 import ReactiveSwift
@@ -47,3 +49,5 @@ public struct EnvironmentLoop<State, Event>: DynamicProperty {
         acknowledgedState = subscription.latestValue
     }
 }
+
+#endif

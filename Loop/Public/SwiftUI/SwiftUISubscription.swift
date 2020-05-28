@@ -1,4 +1,6 @@
 import SwiftUI
+#if canImport(Combine)
+
 import Combine
 import ReactiveSwift
 
@@ -30,3 +32,5 @@ internal final class SwiftUISubscription<State, Event>: ObservableObject {
             }
     }
 }
+
+#endif
