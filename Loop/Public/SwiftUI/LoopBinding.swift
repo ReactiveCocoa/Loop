@@ -22,19 +22,19 @@ public struct LoopBinding<State, Event>: DynamicProperty {
     }
 
     @usableFromInline
-    internal var acknowledgedState: State!
+    internal var acknowledgedState: State
 
     public init(_ loop: Loop<State, Event>) {
         // The subscription can be copied without restrictions.
-        self.subscription = SwiftUISubscription()
+        let subscription = SwiftUISubscription(loop: loop)
+
+        self.subscription = subscription
+        self.acknowledgedState = subscription.latestValue
         self.loop = loop
     }
 
     public mutating func update() {
-        if subscription.hasStarted == false {
-            subscription.attach(to: loop)
-        }
-
+        // Move latest value from the subscription only when SwiftUI has requested an update.
         acknowledgedState = subscription.latestValue
     }
 

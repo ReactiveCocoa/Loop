@@ -7,11 +7,11 @@ import ReactiveSwift
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 @propertyWrapper
 public struct EnvironmentLoop<State, Event>: DynamicProperty {
-    @Environment(\.loops[ObjectIdentifier(Loop<State, Event>.self)])
-    var erasedLoop: Any?
+    @Environment(\.loops[LoopType(Loop<State, Event>.self)])
+    var erasedLoop: AnyObject?
 
     @ObservedObject
-    private var subscription: SwiftUISubscription<State, Event>
+    private var subscription: SwiftUIHotSwappableSubscription<State, Event>
 
     @inlinable
     public var wrappedValue: State {
@@ -30,23 +30,15 @@ public struct EnvironmentLoop<State, Event>: DynamicProperty {
     internal var acknowledgedState: State!
 
     public init() {
-        self.subscription = SwiftUISubscription()
+        self.subscription = SwiftUIHotSwappableSubscription()
     }
 
     public mutating func update() {
-        if isKnownUniquelyReferenced(&subscription) == false {
-            subscription = SwiftUISubscription()
+        guard let loop = erasedLoop as! Loop<State, Event>? else {
+            fatalError("Expect parent view to inject a `Loop<\(State.self), \(Event.self)>` through `View.environmentLoop(_:)`. Found none.")
         }
 
-        if subscription.hasStarted == false {
-            guard let loop = erasedLoop as! Loop<State, Event>? else {
-                fatalError("Expect parent view to inject a `Loop<\(State.self), \(Event.self)>` through `View.environmentLoop(_:)`. Found none.")
-            }
-
-            subscription.attach(to: loop)
-        }
-
-        acknowledgedState = subscription.latestValue
+        acknowledgedState = subscription.currentState(in: loop)
     }
 }
 
