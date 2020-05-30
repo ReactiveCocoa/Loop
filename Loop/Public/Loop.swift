@@ -19,7 +19,12 @@ public final class Loop<State, Event> {
         }
     }
 
-    private let box: LoopBoxBase<State, Event>
+    @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+    public var binding: LoopBinding<State, Event> {
+        LoopBinding(self)
+    }
+
+    internal let box: LoopBoxBase<State, Event>
 
     private init(box: LoopBoxBase<State, Event>) {
         self.box = box
