@@ -13,12 +13,12 @@ enum UnifiedStore {
         pullback(
             Counter.reduce,
             value: \.counter,
-            event: \.counter
+            extractEvent: \.counter
         ),
         pullback(
             Movies.reduce,
             value: \.movies,
-            event: \.movies
+            extractEvent: \.movies
         )
     )
 

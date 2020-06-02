@@ -120,7 +120,7 @@ enum Movies {
             pullback(
                 ColorPicker.reduce,
                 value: \.colorPicker,
-                event: \.colorPicker
+                extractEvent: \.colorPicker
             )
         )
     }

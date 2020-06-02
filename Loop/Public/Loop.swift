@@ -46,7 +46,7 @@ public final class Loop<State, Event> {
     }
 
     public func scoped<ScopedState, ScopedEvent>(
-        to scope: KeyPath<State, ScopedState>,
+        to scope: @escaping (State) -> ScopedState,
         event: @escaping (ScopedEvent) -> Event
     ) -> Loop<ScopedState, ScopedEvent> {
         return Loop<ScopedState, ScopedEvent>(
@@ -73,7 +73,7 @@ extension Loop {
         value: KeyPath<State, ScopedState>,
         event: @escaping (ScopedEvent) -> Event
     ) -> Loop<ScopedState, ScopedEvent> {
-        return scoped(to: value, event: event)
+        return scoped(to: { s in s[keyPath: value] }, event: event)
     }
 
     @available(*, unavailable, message:"Loop now starts automatically.")

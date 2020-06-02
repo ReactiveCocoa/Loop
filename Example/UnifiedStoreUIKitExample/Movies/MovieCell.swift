@@ -21,8 +21,7 @@ class ImageFetcher {
                     self.cache.setObject($0, forKey: url as NSURL)
                 })
                 .flatMapError { _ in SignalProducer<UIImage, Never>(value: UIImage()) }
-                .observe(on: UIScheduler())
-        }
+        }.observe(on: UIScheduler())
     }
 }
 

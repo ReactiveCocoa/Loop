@@ -11,6 +11,10 @@ struct SwiftUIBasicBindingHomeView: View {
             CardNavigationLink(label: "@EnvironmentLoop", color: .orange) {
                 EnvironmentLoopExampleView(loop: simpleCounterStore)
             }
+            
+            CardNavigationLink(label: "Cats", color: .orange) {
+                Breeds.makeCatsView()
+            }
         }
     }
 }

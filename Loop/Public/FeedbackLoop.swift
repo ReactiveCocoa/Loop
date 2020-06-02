@@ -221,6 +221,31 @@ extension Loop {
             })
         }
         
+        public func pullback<GlobalState, GlobalEvent>(
+            value: KeyPath<GlobalState, State>,
+            embedEvent: @escaping (Event) -> GlobalEvent
+        ) -> Loop<GlobalState, GlobalEvent>.Feedback {
+            Loop<GlobalState, GlobalEvent>.Feedback(startWith: { (state, consumer)  in
+                self.events(
+                    state.map(value),
+                    consumer.pullback(embedEvent)
+                )
+            })
+        }
+        
+        public func pullback<GlobalState, GlobalEvent>(
+            value: KeyPath<GlobalState, State?>,
+            embedEvent: @escaping (Event) -> GlobalEvent
+        ) -> Loop<GlobalState, GlobalEvent>.Feedback {
+            Loop<GlobalState, GlobalEvent>.Feedback(startWith: { (state, consumer)  in
+                self.events(
+                    state.compactMap { $0[keyPath: value] },
+                    consumer.pullback(embedEvent)
+                )
+            })
+        }
+
+        
         public static func combine(_ feedbacks: Loop<State, Event>.Feedback...) -> Feedback {
             return Feedback(startWith: { (state, consumer) in
                 return feedbacks.map { (feedback) in

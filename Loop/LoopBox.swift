@@ -11,16 +11,16 @@ internal class ScopedLoopBox<RootState, RootEvent, ScopedState, ScopedEvent>: Lo
 
     /// Loop Internal SPI
     override var _current: ScopedState {
-        root._current[keyPath: value]
+        return value(root._current)
     }
 
     private let root: LoopBoxBase<RootState, RootEvent>
-    private let value: KeyPath<RootState, ScopedState>
+    private let value: (RootState) -> ScopedState
     private let eventTransform: (ScopedEvent) -> RootEvent
 
     init(
         root: LoopBoxBase<RootState, RootEvent>,
-        value: KeyPath<RootState, ScopedState>,
+        value: @escaping (RootState) -> ScopedState,
         event: @escaping (ScopedEvent) -> RootEvent
     ) {
         self.root = root
@@ -33,12 +33,14 @@ internal class ScopedLoopBox<RootState, RootEvent, ScopedState, ScopedEvent>: Lo
     }
 
     override func scoped<S, E>(
-        to scope: KeyPath<ScopedState, S>,
+        to scope: @escaping (ScopedState) -> S,
         event: @escaping (E) -> ScopedEvent
     ) -> LoopBoxBase<S, E> {
         return ScopedLoopBox<RootState, RootEvent, S, E>(
             root: self.root,
-            value: value.appending(path: scope),
+            value: { root in
+                scope(self.value(root))
+            },
             event: { [eventTransform] in eventTransform(event($0)) }
         )
     }
@@ -75,7 +77,7 @@ internal class RootLoopBox<State, Event>: LoopBoxBase<State, Event> {
     }
 
     override func scoped<S, E>(
-        to scope: KeyPath<State, S>,
+        to scope: @escaping (State) -> S,
         event: @escaping (E) -> Event
     ) -> LoopBoxBase<S, E> {
         ScopedLoopBox(root: self, value: scope, event: event)
@@ -108,7 +110,7 @@ internal class LoopBoxBase<State, Event> {
     func send(_ event: Event) { subclassMustImplement() }
 
     func scoped<S, E>(
-        to scope: KeyPath<State, S>,
+        to scope: @escaping (State) -> S,
         event: @escaping (E) -> Event
     ) -> LoopBoxBase<S, E> {
         subclassMustImplement()
