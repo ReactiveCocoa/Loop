@@ -6,7 +6,7 @@ public typealias FeedbackLoop<State, Event> = Loop<State, Event>
 @available(*, deprecated, renamed:"Store")
 public typealias Store<State, Event> = Loop<State, Event>
 
-public final class Loop<State, Event> {
+public class Loop<State, Event> {
     public var producer: SignalProducer<State, Never> {
         box.producer
     }
@@ -26,7 +26,7 @@ public final class Loop<State, Event> {
 
     internal let box: LoopBoxBase<State, Event>
 
-    private init(box: LoopBoxBase<State, Event>) {
+    internal init(box: LoopBoxBase<State, Event>) {
         self.box = box
     }
 

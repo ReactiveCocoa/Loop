@@ -41,9 +41,6 @@
 		5B8F920C24731F2800C1C90E /* LoopBinding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8F920B24731F2800C1C90E /* LoopBinding.swift */; };
 		5B8F920D24731F2800C1C90E /* LoopBinding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8F920B24731F2800C1C90E /* LoopBinding.swift */; };
 		5B8F920E24731F2800C1C90E /* LoopBinding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8F920B24731F2800C1C90E /* LoopBinding.swift */; };
-		5B8F92102473242900C1C90E /* SwiftUISubscription.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8F920F2473242900C1C90E /* SwiftUISubscription.swift */; };
-		5B8F92112473242900C1C90E /* SwiftUISubscription.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8F920F2473242900C1C90E /* SwiftUISubscription.swift */; };
-		5B8F92122473242900C1C90E /* SwiftUISubscription.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8F920F2473242900C1C90E /* SwiftUISubscription.swift */; };
 		5B8F922124732C4600C1C90E /* SwiftUIBasicBindingHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8F922024732C4600C1C90E /* SwiftUIBasicBindingHomeView.swift */; };
 		5B8F922324732C9500C1C90E /* LoopBindingExampleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8F922224732C9500C1C90E /* LoopBindingExampleView.swift */; };
 		5B8F922724732E1700C1C90E /* SimpleCounterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8F922624732E1700C1C90E /* SimpleCounterView.swift */; };
@@ -99,6 +96,9 @@
 		65F8C2972183725900924657 /* Loop.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 25CC87AE1F92855300A6EBFC /* Loop.framework */; };
 		65F8C2CF218378F500924657 /* Loop.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F8C26B218371A800924657 /* Loop.framework */; };
 		65F8C2D0218378F500924657 /* Loop.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 65F8C26B218371A800924657 /* Loop.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		9A0D0D2024AAA12700429900 /* MainThreadLoopBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0D0D1F24AAA12700429900 /* MainThreadLoopBox.swift */; };
+		9A0D0D2124AAA12C00429900 /* MainThreadLoopBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0D0D1F24AAA12700429900 /* MainThreadLoopBox.swift */; };
+		9A0D0D2224AAA12C00429900 /* MainThreadLoopBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0D0D1F24AAA12700429900 /* MainThreadLoopBox.swift */; };
 		9AD5D42D1F97375E00E6AE5A /* Property+System.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AD5D42C1F97375E00E6AE5A /* Property+System.swift */; };
 		9AE181BB1F95A71B00A07551 /* Loop.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 25CC87AE1F92855300A6EBFC /* Loop.framework */; };
 		9AE9563E2186341B005A8C69 /* ReactiveCocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AE9563B21863415005A8C69 /* ReactiveCocoa.framework */; };
@@ -224,7 +224,6 @@
 		5B017D2F246F344500400BFE /* CardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardView.swift; sourceTree = "<group>"; };
 		5B017D31246F466600400BFE /* RACHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RACHeaderView.swift; sourceTree = "<group>"; };
 		5B8F920B24731F2800C1C90E /* LoopBinding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopBinding.swift; sourceTree = "<group>"; };
-		5B8F920F2473242900C1C90E /* SwiftUISubscription.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftUISubscription.swift; sourceTree = "<group>"; };
 		5B8F92132473250E00C1C90E /* EnvironmentLoop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvironmentLoop.swift; sourceTree = "<group>"; };
 		5B8F921B247325C300C1C90E /* EnvironmentValues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvironmentValues.swift; sourceTree = "<group>"; };
 		5B8F922024732C4600C1C90E /* SwiftUIBasicBindingHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftUIBasicBindingHomeView.swift; sourceTree = "<group>"; };
@@ -248,6 +247,7 @@
 		65F8C27A218371AC00924657 /* Loop.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Loop.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		65F8C28E2183723F00924657 /* LoopTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LoopTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		65F8C2A22183725900924657 /* LoopTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LoopTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9A0D0D1F24AAA12700429900 /* MainThreadLoopBox.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainThreadLoopBox.swift; sourceTree = "<group>"; };
 		9AD5D42C1F97375E00E6AE5A /* Property+System.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Property+System.swift"; sourceTree = "<group>"; };
 		9AE181B61F95A71B00A07551 /* LoopTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LoopTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9AE181BA1F95A71B00A07551 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -335,6 +335,7 @@
 				5BC88F96246B18A200394C63 /* Legacy */,
 				5BC88F95246B188300394C63 /* Public */,
 				5BC88F8D246B11DE00394C63 /* LoopBox.swift */,
+				9A0D0D1F24AAA12700429900 /* MainThreadLoopBox.swift */,
 				65761B2523CF20EF004D5506 /* Floodgate.swift */,
 				65761B2D23CF4CA1004D5506 /* NSLock+Extensions.swift */,
 				25CC87B11F92855300A6EBFC /* Info.plist */,
@@ -471,7 +472,6 @@
 				5B8F920B24731F2800C1C90E /* LoopBinding.swift */,
 				5B8F92132473250E00C1C90E /* EnvironmentLoop.swift */,
 				5B8F921B247325C300C1C90E /* EnvironmentValues.swift */,
-				5B8F920F2473242900C1C90E /* SwiftUISubscription.swift */,
 				5BAB974F247FFBC10079B532 /* SwiftUIHotSwappableSubscription.swift */,
 			);
 			path = SwiftUI;
@@ -820,12 +820,12 @@
 				65761B2E23CF4CA2004D5506 /* NSLock+Extensions.swift in Sources */,
 				5BC88F9C246B1CDE00394C63 /* SignalProducer+Loop.swift in Sources */,
 				5BC88F92246B17B200394C63 /* Context.swift in Sources */,
+				9A0D0D2024AAA12700429900 /* MainThreadLoopBox.swift in Sources */,
 				5BAB9750247FFBC10079B532 /* SwiftUIHotSwappableSubscription.swift in Sources */,
 				585CD87B239E6A39004BE9CC /* Reducer.swift in Sources */,
 				9AD5D42D1F97375E00E6AE5A /* Property+System.swift in Sources */,
 				5BC88F88246AFC5900394C63 /* ReactiveSwift+EnqueueTo.swift in Sources */,
 				656A9C9323D0813500EFB2F8 /* FeedbackLoop.swift in Sources */,
-				5B8F92102473242900C1C90E /* SwiftUISubscription.swift in Sources */,
 				5BDEDA3E2473359C00A13013 /* EnvironmentValues.swift in Sources */,
 				656A9C9723D0826100EFB2F8 /* FeedbackEventConsumer.swift in Sources */,
 				5BC88F8E246B11DE00394C63 /* LoopBox.swift in Sources */,
@@ -875,12 +875,12 @@
 				65761B2F23CF4CA2004D5506 /* NSLock+Extensions.swift in Sources */,
 				5BC88F9D246B1CDE00394C63 /* SignalProducer+Loop.swift in Sources */,
 				5BC88F93246B17B200394C63 /* Context.swift in Sources */,
+				9A0D0D2124AAA12C00429900 /* MainThreadLoopBox.swift in Sources */,
 				5BAB9751247FFBC10079B532 /* SwiftUIHotSwappableSubscription.swift in Sources */,
 				585CD87C239E6A3E004BE9CC /* Reducer.swift in Sources */,
 				65F8C262218371A800924657 /* Property+System.swift in Sources */,
 				5BC88F89246AFC5900394C63 /* ReactiveSwift+EnqueueTo.swift in Sources */,
 				656A9C9423D0813500EFB2F8 /* FeedbackLoop.swift in Sources */,
-				5B8F92112473242900C1C90E /* SwiftUISubscription.swift in Sources */,
 				5BDEDA3F2473359D00A13013 /* EnvironmentValues.swift in Sources */,
 				656A9C9823D0826100EFB2F8 /* FeedbackEventConsumer.swift in Sources */,
 				5BC88F8F246B11DE00394C63 /* LoopBox.swift in Sources */,
@@ -900,12 +900,12 @@
 				65761B3023CF4CA2004D5506 /* NSLock+Extensions.swift in Sources */,
 				5BC88F9E246B1CDE00394C63 /* SignalProducer+Loop.swift in Sources */,
 				5BC88F94246B17B200394C63 /* Context.swift in Sources */,
+				9A0D0D2224AAA12C00429900 /* MainThreadLoopBox.swift in Sources */,
 				5BAB9752247FFBC10079B532 /* SwiftUIHotSwappableSubscription.swift in Sources */,
 				585CD87D239E6A3E004BE9CC /* Reducer.swift in Sources */,
 				65F8C271218371AC00924657 /* Property+System.swift in Sources */,
 				5BC88F8A246AFC5900394C63 /* ReactiveSwift+EnqueueTo.swift in Sources */,
 				656A9C9523D0813500EFB2F8 /* FeedbackLoop.swift in Sources */,
-				5B8F92122473242900C1C90E /* SwiftUISubscription.swift in Sources */,
 				5BDEDA402473359D00A13013 /* EnvironmentValues.swift in Sources */,
 				656A9C9923D0826100EFB2F8 /* FeedbackEventConsumer.swift in Sources */,
 				5BC88F90246B11DE00394C63 /* LoopBox.swift in Sources */,

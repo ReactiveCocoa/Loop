@@ -8,9 +8,7 @@ import ReactiveSwift
 @propertyWrapper
 public struct LoopBinding<State, Event>: DynamicProperty {
     @ObservedObject
-    private var subscription: SwiftUISubscription<State, Event>
-
-    private let loop: Loop<State, Event>
+    private var box: LoopBoxBase<State, Event>
 
     @inlinable
     public var wrappedValue: State {
@@ -25,28 +23,27 @@ public struct LoopBinding<State, Event>: DynamicProperty {
     internal var acknowledgedState: State
 
     public init(_ loop: Loop<State, Event>) {
-        // The subscription can be copied without restrictions.
-        let subscription = SwiftUISubscription(loop: loop)
-
-        self.subscription = subscription
-        self.acknowledgedState = subscription.latestValue
-        self.loop = loop
+        let mainThreadBox = loop.box._mainThreadView
+        self.box = mainThreadBox
+        self.acknowledgedState = mainThreadBox._current
     }
 
     public mutating func update() {
         // Move latest value from the subscription only when SwiftUI has requested an update.
-        acknowledgedState = subscription.latestValue
+        acknowledgedState = box._current
     }
 
     public func scoped<ScopedState, ScopedEvent>(
         to value: KeyPath<State, ScopedState>,
         event: @escaping (ScopedEvent) -> Event
     ) -> LoopBinding<ScopedState, ScopedEvent> {
-        LoopBinding<ScopedState, ScopedEvent>(loop.scoped(to: value, event: event))
+        LoopBinding<ScopedState, ScopedEvent>(
+            Loop(box: box.scoped(to: value, event: event))
+        )
     }
 
     public func send(_ event: Event) {
-        loop.send(event)
+        box.send(event)
     }
 }
 

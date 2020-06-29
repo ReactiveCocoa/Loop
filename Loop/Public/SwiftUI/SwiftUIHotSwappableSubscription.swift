@@ -5,32 +5,28 @@ import ReactiveSwift
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 internal final class SwiftUIHotSwappableSubscription<State, Event>: ObservableObject {
+    let objectWillChange = ObjectWillChangePublisher()
 
-    @Published private var latestValue: State!
-    private weak var attachedLoop: Loop<State, Event>?
-    private var disposable: Disposable?
+    private weak var attachedBox: LoopBoxBase<State, Event>!
+    private var cancellable: Cancellable?
 
     init() {}
 
     deinit {
-        disposable?.dispose()
+        cancellable?.cancel()
     }
 
     func currentState(in loop: Loop<State, Event>) -> State {
-        if attachedLoop !== loop {
-            disposable?.dispose()
+        let mainThreadBox = loop.box._mainThreadView
 
-            latestValue = loop.box._current
+        if attachedBox !== mainThreadBox {
+            cancellable?.cancel()
 
-            disposable = loop.producer
-                .observe(on: UIScheduler())
-                .startWithValues { [weak self] state in
-                    guard let self = self else { return }
-                    self.latestValue = state
-                }
+            attachedBox = mainThreadBox
+            cancellable = mainThreadBox.objectWillChange.sink(receiveValue: objectWillChange.send)
         }
 
-        return latestValue
+        return attachedBox._current
     }
 }
 

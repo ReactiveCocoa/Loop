@@ -7,11 +7,22 @@ import ReactiveSwift
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 @propertyWrapper
 public struct EnvironmentLoop<State, Event>: DynamicProperty {
-    @Environment(\.loops[LoopType(Loop<State, Event>.self)])
-    var erasedLoop: AnyObject?
+    @Environment(\.loops)
+    var erasedLoops: [LoopType: AnyObject]
 
     @ObservedObject
     private var subscription: SwiftUIHotSwappableSubscription<State, Event>
+
+    var injectedLoop: Loop<State, Event> {
+        let key = LoopType(Loop<State, Event>.self)
+        guard let injected = erasedLoops[key] as! Loop<State, Event>? else {
+            fatalError("""
+            Expected a `Loop<\(State.self), \(Event.self)>` has been injected by `View.environmentLoop(_:)`. Found none.
+            """)
+        }
+
+        return injected
+    }
 
     @inlinable
     public var wrappedValue: State {
@@ -19,11 +30,7 @@ public struct EnvironmentLoop<State, Event>: DynamicProperty {
     }
 
     public var projectedValue: LoopBinding<State, Event> {
-        guard let loop = erasedLoop as! Loop<State, Event>? else {
-            fatalError("Scoped bindings can only be created inside the view body.")
-        }
-
-        return LoopBinding(loop)
+        return LoopBinding(injectedLoop)
     }
 
     @usableFromInline
@@ -34,11 +41,7 @@ public struct EnvironmentLoop<State, Event>: DynamicProperty {
     }
 
     public mutating func update() {
-        guard let loop = erasedLoop as! Loop<State, Event>? else {
-            fatalError("Expect parent view to inject a `Loop<\(State.self), \(Event.self)>` through `View.environmentLoop(_:)`. Found none.")
-        }
-
-        acknowledgedState = subscription.currentState(in: loop)
+        acknowledgedState = subscription.currentState(in: injectedLoop)
     }
 }
 
