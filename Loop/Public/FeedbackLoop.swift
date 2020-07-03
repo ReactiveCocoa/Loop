@@ -337,24 +337,67 @@ extension Loop {
                 }
             )
         }
-        
-        /// Creates a Feedback which re-evaluates the given effect every time the
-        /// given predicate passes.
-        ///
-        /// If the previous effect is still alive when a new one is about to start,
-        /// the previous one would automatically be cancelled.
+
+        /// Create a feedback which (re)starts the effect every time `transform` emits a non-nil value after a sequence
+        /// of `nil`, and ignore all the non-nil value afterwards. It does so until `transform` starts emitting a `nil`,
+        /// at which point the feedback cancels any outstanding effect.
         ///
         /// - parameters:
-        ///   - predicate: The predicate to apply on the state.
-        ///   - effects: The side effect accepting the state and yielding events
+        ///   - transform: The transform to select a specific part of the state, or to cancel the outstanding effect
+        ///                by returning `nil`.
+        ///   - effects: The side effect accepting the first non-nil value produced by `transform`, and yielding events
         ///              that eventually affect the state.
-        public static func predicate<Effect: SignalProducerConvertible>(
-            state predicate: @escaping (State) -> Bool,
-            effects: @escaping (State) -> Effect
-        ) -> Feedback where Effect.Value == Event, Effect.Error == Never {
-            Feedback(predicate: predicate, effects: effects)
+        public init<Value, Effect: SignalProducerConvertible>(
+          firstValueAfterNil transform: @escaping (State) -> Value?,
+          effects: @escaping (Value) -> Effect
+        ) where Effect.Value == Event, Effect.Error == Never {
+          self.init(
+            compacting: { state in
+              state
+                .scan(into: (false, nil)) { (temp: inout (lastWasNil: Bool, output: NilEdgeTransition<Value>?), state: State) in
+                  let result = transform(state)
+                  temp.output = nil
+
+                  switch (temp.lastWasNil, result) {
+                  case (true, .none), (false, .some):
+                    return
+                  case let (true, .some(value)):
+                    temp.lastWasNil = false
+                    temp.output = .populated(value)
+                  case (false, .none):
+                    temp.lastWasNil = true
+                    temp.output = .cleared
+                  }
+              }
+              .compactMap { $0.output }
+            },
+            effects: { transition -> SignalProducer<Event, Never> in
+              switch transition {
+              case let .populated(value):
+                return effects(value).producer
+              case .cleared:
+                return .empty
+              }
+            }
+          )
         }
-        
+
+        /// Create a feedback which (re)starts the effect every time `transform` emits a non-nil value after a sequence
+        /// of `nil`, and ignore all the non-nil value afterwards. It does so until `transform` starts emitting a `nil`,
+        /// at which point the feedback cancels any outstanding effect.
+        ///
+        /// - parameters:
+        ///   - transform: The transform to select a specific part of the state, or to cancel the outstanding effect
+        ///                by returning `nil`.
+        ///   - effects: The side effect accepting the first non-nil value produced by `transform`, and yielding events
+        ///              that eventually affect the state.
+        public static func firstValueAfterNil<Value, Effect: SignalProducerConvertible>(
+            _ transform: @escaping (State) -> Value?,
+            effects: @escaping (Value) -> Effect
+        ) -> Feedback where Effect.Value == Event, Effect.Error == Never {
+            self.init(firstValueAfterNil: transform, effects: effects)
+        }
+
         /// Creates a Feedback which re-evaluates the given effect every time the
         /// state changes.
         ///
@@ -442,4 +485,9 @@ extension Loop {
             }
         }
     }
+}
+
+private enum NilEdgeTransition<Value> {
+  case populated(Value)
+  case cleared
 }
