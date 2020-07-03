@@ -295,7 +295,7 @@ extension Loop {
             Feedback(extractingPayload: transform, effects: effects)
         }
 
-        /// Create a feedback which (re)starts the effect every time `transform` emits a non-nil value after a sequence
+        /// Create a Feedback which (re)starts the effect every time `transform` emits a non-nil value after a sequence
         /// of `nil`, and ignore all the non-nil value afterwards. It does so until `transform` starts emitting a `nil`,
         /// at which point the feedback cancels any outstanding effect.
         ///
@@ -354,7 +354,44 @@ extension Loop {
         ) -> Feedback where Effect.Value == Event, Effect.Error == Never {
             self.init(firstValueAfterNil: transform, effects: effects)
         }
-        
+
+        /// Creates a Feedback which evaluates the given effect when the predicate transitions to `true`, and
+        /// cancels the outstanding effect when the predicate transitions to `false`.
+        ///
+        /// In other words, this variant treats the output of `predicate` as a binary signal. It starts the effect when
+        /// there is a positive edge, and cancels the outstanding effect (if any) when there is a negative edge.
+        ///
+        /// - parameters:
+        ///   - predicate: The predicate to indicate whether effects should start or be cancelled.
+        ///   - effects: The side effect accepting the state and yielding events that eventually affect the state.
+        public init<Effect: SignalProducerConvertible>(
+            whenBecomesTrue predicate: @escaping (State) -> Bool,
+            effects: @escaping (State) -> Effect
+        ) where Effect.Value == Event, Effect.Error == Never {
+            self.init(
+                firstValueAfterNil: { predicate($0) ? $0 : nil },
+                effects: { state -> SignalProducer<Event, Never> in
+                    effects(state).producer
+                }
+            )
+        }
+
+        /// Creates a Feedback which evaluates the given effect when the predicate transitions to `true`, and
+        /// cancels the outstanding effect when the predicate transitions to `false`.
+        ///
+        /// In other words, this variant treats the output of `predicate` as a binary signal. It starts the effect when
+        /// there is a positive edge, and cancels the outstanding effect (if any) when there is a negative edge.
+        ///
+        /// - parameters:
+        ///   - predicate: The predicate to indicate whether effects should start or be cancelled.
+        ///   - effects: The side effect accepting the state and yielding events that eventually affect the state.
+        public static func whenBecomesTrue<Effect: SignalProducerConvertible>(
+            _ predicate: @escaping (State) -> Bool,
+            effects: @escaping (State) -> Effect
+        ) -> Feedback where Effect.Value == Event, Effect.Error == Never {
+            self.init(whenBecomesTrue: predicate, effects: effects)
+        }
+
         /// Creates a Feedback which re-evaluates the given effect every time the
         /// state changes with the Event that caused the change.
         ///
