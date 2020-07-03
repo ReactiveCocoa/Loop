@@ -46,11 +46,25 @@ public final class Loop<State, Event> {
     }
 
     public func scoped<ScopedState, ScopedEvent>(
-        to scope: KeyPath<State, ScopedState>,
+        to scope: @escaping (State) -> ScopedState,
         event: @escaping (ScopedEvent) -> Event
     ) -> Loop<ScopedState, ScopedEvent> {
         return Loop<ScopedState, ScopedEvent>(
             box: box.scoped(to: scope, event: event)
+        )
+    }
+
+    public func scoped<ScopedEvent>(
+        event: @escaping (ScopedEvent) -> Event
+    ) -> Loop<State, ScopedEvent> {
+        return Loop<State, ScopedEvent>(
+            box: box.scoped(to: { $0 }, event: event)
+        )
+    }
+
+    public func eraseEventType() -> Loop<State, Never> {
+        return Loop<State, Never>(
+            box: box.scoped(to: { $0 }, event: { _ in fatalError() })
         )
     }
 }
@@ -73,7 +87,7 @@ extension Loop {
         value: KeyPath<State, ScopedState>,
         event: @escaping (ScopedEvent) -> Event
     ) -> Loop<ScopedState, ScopedEvent> {
-        return scoped(to: value, event: event)
+        return scoped(to: { $0[keyPath: value] }, event: event)
     }
 
     @available(*, unavailable, message:"Loop now starts automatically.")
