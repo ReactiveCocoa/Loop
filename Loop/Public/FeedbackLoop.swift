@@ -194,26 +194,6 @@ extension Loop {
         ) -> Feedback where Effect.Value == Event, Effect.Error == Never {
             return Feedback(compactingEvents: transform, effects: effects)
         }
-
-        /// Creates a Feedback which re-evaluates the given effect every time the
-        /// state changes, and the transform consequentially yields a new value
-        /// distinct from the last yielded value.
-        ///
-        /// If the previous effect is still alive when a new one is about to start,
-        /// the previous one would automatically be cancelled.
-        ///
-        /// - parameters:
-        ///   - transform: The transform to apply on the state.
-        ///   - effects: The side effect accepting transformed values produced by
-        ///              `transform` and yielding events that eventually affect
-        ///              the state.
-        @available(*, deprecated, renamed:"init(skippingRepeatedState:effects:)")
-        public init<Control: Equatable, Effect: SignalProducerConvertible>(
-            skippingRepeated transform: @escaping (State) -> Control?,
-            effects: @escaping (Control) -> Effect
-        ) where Effect.Value == Event, Effect.Error == Never {
-            self.init(skippingRepeatedState: transform, effects: effects)
-        }
         
         public init<Control: Equatable, Effect: SignalProducerConvertible>(
             skippingRepeatedState transform: @escaping (State) -> Control?,
@@ -301,7 +281,6 @@ extension Loop {
         ///   - effects: The side effect accepting transformed values produced by
         ///              `transform` and yielding events that eventually affect
         ///              the state.
-
         public static func lensing<Control, Effect: SignalProducerConvertible>(
             state transform: @escaping (State) -> Control?,
             effects: @escaping (Control) -> Effect
@@ -314,28 +293,6 @@ extension Loop {
             effects: @escaping (Payload) -> Effect
         ) -> Feedback where Effect.Value == Event, Effect.Error == Never {
             Feedback(extractingPayload: transform, effects: effects)
-        }
-        
-        /// Creates a Feedback which re-evaluates the given effect every time the
-        /// given predicate passes.
-        ///
-        /// If the previous effect is still alive when a new one is about to start,
-        /// the previous one would automatically be cancelled.
-        ///
-        /// - parameters:
-        ///   - predicate: The predicate to apply on the state.
-        ///   - effects: The side effect accepting the state and yielding events
-        ///              that eventually affect the state.
-        public init<Effect: SignalProducerConvertible>(
-            predicate: @escaping (State) -> Bool,
-            effects: @escaping (State) -> Effect
-        ) where Effect.Value == Event, Effect.Error == Never {
-            self.init(
-                compactingState: { $0 },
-                effects: { state -> SignalProducer<Event, Never> in
-                    predicate(state) ? effects(state).producer : .empty
-                }
-            )
         }
 
         /// Create a feedback which (re)starts the effect every time `transform` emits a non-nil value after a sequence
@@ -396,21 +353,6 @@ extension Loop {
             effects: @escaping (Value) -> Effect
         ) -> Feedback where Effect.Value == Event, Effect.Error == Never {
             self.init(firstValueAfterNil: transform, effects: effects)
-        }
-
-        /// Creates a Feedback which re-evaluates the given effect every time the
-        /// state changes.
-        ///
-        /// If the previous effect is still alive when a new one is about to start,
-        /// the previous one would automatically be cancelled.
-        ///
-        /// - parameters:
-        ///   - effects: The side effect accepting the state and yielding events
-        ///              that eventually affect the state.
-        public init<Effect: SignalProducerConvertible>(
-            effects: @escaping (State) -> Effect
-        ) where Effect.Value == Event, Effect.Error == Never {
-            self.init(compactingState: { $0 }, effects: effects)
         }
         
         /// Creates a Feedback which re-evaluates the given effect every time the
@@ -484,6 +426,65 @@ extension Loop {
                 }
             }
         }
+    }
+}
+
+extension Loop.Feedback {
+    /// Creates a Feedback which re-evaluates the given effect every time the
+    /// state changes, and the transform consequentially yields a new value
+    /// distinct from the last yielded value.
+    ///
+    /// If the previous effect is still alive when a new one is about to start,
+    /// the previous one would automatically be cancelled.
+    ///
+    /// - parameters:
+    ///   - transform: The transform to apply on the state.
+    ///   - effects: The side effect accepting transformed values produced by
+    ///              `transform` and yielding events that eventually affect
+    ///              the state.
+    @available(*, deprecated, renamed:"init(skippingRepeatedState:effects:)")
+    public init<Control: Equatable, Effect: SignalProducerConvertible>(
+        skippingRepeated transform: @escaping (State) -> Control?,
+        effects: @escaping (Control) -> Effect
+    ) where Effect.Value == Event, Effect.Error == Never {
+        self.init(skippingRepeatedState: transform, effects: effects)
+    }
+
+    /// Creates a Feedback which re-evaluates the given effect every time the
+    /// given predicate passes.
+    ///
+    /// If the previous effect is still alive when a new one is about to start,
+    /// the previous one would automatically be cancelled.
+    ///
+    /// - parameters:
+    ///   - predicate: The predicate to apply on the state.
+    ///   - effects: The side effect accepting the state and yielding events
+    ///              that eventually affect the state.
+    @available(*, deprecated, message:"Use `Feedback.init(whenBecomesTrue:effects:)`, or other more appropriate variants.")
+    public init<Effect: SignalProducerConvertible>(
+        predicate: @escaping (State) -> Bool,
+        effects: @escaping (State) -> Effect
+    ) where Effect.Value == Event, Effect.Error == Never {
+        self.init(compacting: { $0 },
+                  effects: { state -> SignalProducer<Event, Never> in
+                      predicate(state) ? effects(state).producer : .empty
+                  })
+    }
+
+    /// Creates a Feedback which re-evaluates the given effect every time the
+    /// state changes.
+    ///
+    /// If the previous effect is still alive when a new one is about to start,
+    /// the previous one would automatically be cancelled.
+    ///
+    /// - parameters:
+    ///   - effects: The side effect accepting the state and yielding events
+    ///              that eventually affect the state.
+    @available(*, deprecated, message:"Use `Feedback.init(whenBecomesTrue:effects:)`, or other more appropriate variants.")
+    public init<Effect: SignalProducerConvertible>(
+        effects: @escaping (State) -> Effect
+    ) where Effect.Value == Event, Effect.Error == Never {
+        self.init(compacting: { $0 }, effects: effects)
     }
 }
 
