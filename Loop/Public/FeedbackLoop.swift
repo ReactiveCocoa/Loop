@@ -81,7 +81,7 @@ extension Loop {
         ///             and having them consumed by `output` using the `SignalProducer.enqueue(to:)` operator.
         public init(
             events: @escaping (
-                _ state: SignalProducer<(State, Event?), Never>,
+                _ statesAndEvents: SignalProducer<(State, Event?), Never>,
                 _ output: FeedbackEventConsumer<Event>
             ) -> SignalProducer<Never, Never>
         ) {
