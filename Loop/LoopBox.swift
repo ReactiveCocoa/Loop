@@ -44,6 +44,14 @@ internal class ScopedLoopBox<RootState, RootEvent, ScopedState, ScopedEvent>: Lo
             event: { [eventTransform] in eventTransform(event($0)) }
         )
     }
+
+    override func pause() {
+        root.pause()
+    }
+
+    override func resume() {
+        root.resume()
+    }
 }
 
 internal class RootLoopBox<State, Event>: LoopBoxBase<State, Event> {
@@ -83,6 +91,14 @@ internal class RootLoopBox<State, Event>: LoopBoxBase<State, Event> {
         ScopedLoopBox(root: self, value: scope, event: event)
     }
 
+    override func pause() {
+        floodgate.unplugFeedbacks()
+    }
+
+    override func resume() {
+        floodgate.plugFeedbacks()
+    }
+
     func start(with feedbacks: [Loop<State, Event>.Feedback]) {
         floodgate.bootstrap(with: feedbacks + [input.feedback])
     }
@@ -115,6 +131,10 @@ internal class LoopBoxBase<State, Event> {
     ) -> LoopBoxBase<S, E> {
         subclassMustImplement()
     }
+
+    func pause() { subclassMustImplement() }
+
+    func resume() { subclassMustImplement() }
 }
 
 @inline(never)

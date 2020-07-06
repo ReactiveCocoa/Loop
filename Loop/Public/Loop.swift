@@ -69,6 +69,14 @@ public final class Loop<State, Event> {
             box: box.scoped(to: { $0 }, event: { _ in fatalError() })
         )
     }
+
+    public func pause() {
+        box.pause()
+    }
+
+    public func resume() {
+        box.resume()
+    }
 }
 
 extension Loop {
