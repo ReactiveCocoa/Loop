@@ -11,13 +11,17 @@ final class Floodgate<State, Event>: FeedbackEventConsumer<Event> {
         }
     }
 
-    let (stateDidChange, changeObserver) = Signal<State, Never>.pipe()
+    let (stateDidChange, changeObserver) = Signal<(State, Event?), Never>.pipe()
 
     /// Replay the current value, and then publish the subsequent changes.
     var producer: SignalProducer<State, Never> {
+        return feedbackProducer.map(\.0)
+    }
+    
+    private var feedbackProducer: SignalProducer<(State, Event?), Never> {
         SignalProducer { observer, lifetime in
             self.withValue { initial, hasStarted -> Void in
-                observer.send(value: initial)
+                observer.send(value: (initial, nil))
                 lifetime += self.stateDidChange.observe(observer)
             }
         }
@@ -40,10 +44,13 @@ final class Floodgate<State, Event>: FeedbackEventConsumer<Event> {
         dispose()
     }
 
-    func bootstrap(with feedbacks: [FeedbackLoop<State, Event>.Feedback]) {
+    func bootstrap(with feedbacks: [Loop<State, Event>.Feedback]) {
         for feedback in feedbacks {
             // Pass `producer` which has replay-1 semantic.
-            feedbackDisposables += feedback.events(producer, self)
+            feedbackDisposables += feedback.events(
+                feedbackProducer,
+                self
+            )
         }
 
         reducerLock.perform {
@@ -122,6 +129,6 @@ final class Floodgate<State, Event>: FeedbackEventConsumer<Event> {
 
     private func consume(_ event: Event) {
         reducer(&state, event)
-        changeObserver.send(value: state)
+        changeObserver.send(value: (state, event))
     }
 }
