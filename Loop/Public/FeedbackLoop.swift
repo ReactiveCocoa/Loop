@@ -2,11 +2,11 @@ import ReactiveSwift
 
 extension Loop {
     public struct Feedback {
-        let events: (_ state: SignalProducer<State, Never>, _ output: FeedbackEventConsumer<Event>) -> Disposable
+        let events: (_ state: SignalProducer<(State, Event?), Never>, _ output: FeedbackEventConsumer<Event>) -> Disposable
 
         /// Private designated initializer. See the public designated initializer below.
         fileprivate init(
-            startWith events: @escaping (_ state: SignalProducer<State, Never>, _ output: FeedbackEventConsumer<Event>) -> Disposable
+            startWith events: @escaping (_ state: SignalProducer<(State, Event?), Never>, _ output: FeedbackEventConsumer<Event>) -> Disposable
         ) {
             self.events = events
         }
@@ -81,7 +81,7 @@ extension Loop {
         ///             and having them consumed by `output` using the `SignalProducer.enqueue(to:)` operator.
         public init(
             events: @escaping (
-                _ state: SignalProducer<State, Never>,
+                _ statesAndEvents: SignalProducer<(State, Event?), Never>,
                 _ output: FeedbackEventConsumer<Event>
             ) -> SignalProducer<Never, Never>
         ) {
@@ -114,18 +114,85 @@ extension Loop {
         ///   - effects: The side effect accepting transformed values produced by
         ///              `transform` and yielding events that eventually affect
         ///              the state.
+        @available(*, deprecated, renamed:"init(compactingState:effects:)")
         public init<U, Effect: SignalProducerConvertible>(
             compacting transform: @escaping (SignalProducer<State, Never>) -> SignalProducer<U, Never>,
             effects: @escaping (U) -> Effect
         ) where Effect.Value == Event, Effect.Error == Never {
-            self.events = { state, output in
+            events = { state, output in
                 // NOTE: `observe(on:)` should be applied on the inner producers, so
                 //       that cancellation due to state changes would be able to
                 //       cancel outstanding events that have already been scheduled.
-                transform(state)
+                transform(state.map(\.0))
                     .flatMap(.latest) { effects($0).producer.enqueue(to: output) }
                     .start()
             }
+        }
+        
+        /// Creates a Feedback which re-evaluates the given effect every time the
+        /// `Signal` derived from the latest state yields a new value.
+        ///
+        /// If the previous effect is still alive when a new one is about to start,
+        /// the previous one would automatically be cancelled.
+        ///
+        /// - parameters:
+        ///   - transform: The transform which derives a `Signal` of values from the
+        ///                latest state.
+        ///   - effects: The side effect accepting transformed values produced by
+        ///              `transform` and yielding events that eventually affect
+        ///              the state.
+        public init<U, Effect: SignalProducerConvertible>(
+            compactingState transform: @escaping (SignalProducer<State, Never>) -> SignalProducer<U, Never>,
+            effects: @escaping (U) -> Effect
+        ) where Effect.Value == Event, Effect.Error == Never {
+            events = { state, output in
+                // NOTE: `observe(on:)` should be applied on the inner producers, so
+                //       that cancellation due to state changes would be able to
+                //       cancel outstanding events that have already been scheduled.
+                transform(state.map(\.0))
+                    .flatMap(.latest) { effects($0).producer.enqueue(to: output) }
+                    .start()
+            }
+        }
+        
+        public init<U, Effect: SignalProducerConvertible>(
+            compactingEvents transform: @escaping (SignalProducer<Event, Never>) -> SignalProducer<U, Never>,
+            effects: @escaping (U) -> Effect
+        ) where Effect.Value == Event, Effect.Error == Never {
+            events = { state, output in
+                // NOTE: `observe(on:)` should be applied on the inner producers, so
+                //       that cancellation due to state changes would be able to
+                //       cancel outstanding events that have already been scheduled.
+                transform(state.compactMap(\.1))
+                    .flatMap(.latest) { effects($0).producer.enqueue(to: output) }
+                    .start()
+            }
+        }
+
+        /// Creates a Feedback which re-evaluates the given effect every time the
+        /// `Signal` derived from the latest state yields a new value.
+        ///
+        /// If the previous effect is still alive when a new one is about to start,
+        /// the previous one would automatically be cancelled.
+        ///
+        /// - parameters:
+        ///   - transform: The transform which derives a `Signal` of values from the
+        ///                latest state.
+        ///   - effects: The side effect accepting transformed values produced by
+        ///              `transform` and yielding events that eventually affect
+        ///              the state.
+        public static func compacting<U, Effect: SignalProducerConvertible>(
+            state transform: @escaping (SignalProducer<State, Never>) -> SignalProducer<U, Never>,
+            effects: @escaping (U) -> Effect
+        ) -> Feedback where Effect.Value == Event, Effect.Error == Never {
+            return Feedback(compactingState: transform, effects: effects)
+        }
+
+        public static func compacting<U, Effect: SignalProducerConvertible>(
+            events transform: @escaping (SignalProducer<Event, Never>) -> SignalProducer<U, Never>,
+            effects: @escaping (U) -> Effect
+        ) -> Feedback where Effect.Value == Event, Effect.Error == Never {
+            return Feedback(compactingEvents: transform, effects: effects)
         }
 
         /// Creates a Feedback which re-evaluates the given effect every time the
@@ -140,12 +207,46 @@ extension Loop {
         ///   - effects: The side effect accepting transformed values produced by
         ///              `transform` and yielding events that eventually affect
         ///              the state.
+        @available(*, deprecated, renamed:"init(skippingRepeatedState:effects:)")
         public init<Control: Equatable, Effect: SignalProducerConvertible>(
             skippingRepeated transform: @escaping (State) -> Control?,
             effects: @escaping (Control) -> Effect
         ) where Effect.Value == Event, Effect.Error == Never {
-            self.init(compacting: { $0.map(transform).skipRepeats() },
-                      effects: { $0.map(effects)?.producer ?? .empty })
+            self.init(skippingRepeatedState: transform, effects: effects)
+        }
+        
+        public init<Control: Equatable, Effect: SignalProducerConvertible>(
+            skippingRepeatedState transform: @escaping (State) -> Control?,
+            effects: @escaping (Control) -> Effect
+        ) where Effect.Value == Event, Effect.Error == Never {
+            self.init(
+                compactingState: { $0.map(transform).skipRepeats() },
+                effects: { $0.map(effects)?.producer ?? .empty }
+            )
+        }
+        
+        public init<Payload: Equatable, Effect: SignalProducerConvertible>(
+            skippingRepeatedEvents transform: @escaping (Event) -> Payload?,
+            effects: @escaping (Payload) -> Effect
+        ) where Effect.Value == Event, Effect.Error == Never {
+            self.init(
+                compactingEvents: { $0.map(transform).skipRepeats() },
+                effects: { $0.map(effects)?.producer ?? .empty }
+            )
+        }
+
+        public static func skippingRepeated<Control: Equatable, Effect: SignalProducerConvertible>(
+            state transform: @escaping (State) -> Control?,
+            effects: @escaping (Control) -> Effect
+        ) -> Feedback where Effect.Value == Event, Effect.Error == Never {
+            Feedback(skippingRepeatedState: transform, effects: effects)
+        }
+
+        public static func skippingRepeated<Payload: Equatable, Effect: SignalProducerConvertible>(
+            events transform: @escaping (Event) -> Payload?,
+            effects: @escaping (Payload) -> Effect
+        ) -> Feedback where Effect.Value == Event, Effect.Error == Never {
+            Feedback(skippingRepeatedEvents: transform, effects: effects)
         }
 
         /// Creates a Feedback which re-evaluates the given effect every time the
@@ -163,10 +264,58 @@ extension Loop {
             lensing transform: @escaping (State) -> Control?,
             effects: @escaping (Control) -> Effect
         ) where Effect.Value == Event, Effect.Error == Never {
-            self.init(compacting: { $0.map(transform) },
-                      effects: { $0.map(effects)?.producer ?? .empty })
+            self.init(
+                compactingState: { $0.map(transform) },
+                effects: { $0.map(effects)?.producer ?? .empty }
+            )
+        }
+        
+        /// Creates a Feedback which re-evaluates the given effect every time the
+        /// a specific even is emitted.
+        ///
+        /// If the previous effect is still alive when a new one is about to start,
+        /// the previous one would automatically be cancelled.
+        ///
+        /// - parameters:
+        ///   - transform: The transform to apply on the state.
+        ///   - effects: The side effect accepting transformed values produced by
+        ///              `transform` and yielding events that eventually affect
+        ///              the state.
+        public init<Payload, Effect: SignalProducerConvertible>(
+            extractingPayload transform: @escaping (Event) -> Payload?,
+            effects: @escaping (Payload) -> Effect
+        ) where Effect.Value == Event, Effect.Error == Never {
+            self.init(
+                compactingEvents: { $0.map(transform) },
+                effects: { $0.map(effects)?.producer ?? .empty }
+            )
+        }
+        /// Creates a Feedback which re-evaluates the given effect every time the
+        /// state changes.
+        ///
+        /// If the previous effect is still alive when a new one is about to start,
+        /// the previous one would automatically be cancelled.
+        ///
+        /// - parameters:
+        ///   - transform: The transform to apply on the state.
+        ///   - effects: The side effect accepting transformed values produced by
+        ///              `transform` and yielding events that eventually affect
+        ///              the state.
+
+        public static func lensing<Control, Effect: SignalProducerConvertible>(
+            state transform: @escaping (State) -> Control?,
+            effects: @escaping (Control) -> Effect
+        ) -> Feedback where Effect.Value == Event, Effect.Error == Never {
+            Feedback(lensing: transform, effects: effects)
         }
 
+        public static func extracting<Payload, Effect: SignalProducerConvertible>(
+            payload transform: @escaping (Event) -> Payload?,
+            effects: @escaping (Payload) -> Effect
+        ) -> Feedback where Effect.Value == Event, Effect.Error == Never {
+            Feedback(extractingPayload: transform, effects: effects)
+        }
+        
         /// Creates a Feedback which re-evaluates the given effect every time the
         /// given predicate passes.
         ///
@@ -181,12 +330,31 @@ extension Loop {
             predicate: @escaping (State) -> Bool,
             effects: @escaping (State) -> Effect
         ) where Effect.Value == Event, Effect.Error == Never {
-            self.init(compacting: { $0 },
-                      effects: { state -> SignalProducer<Event, Never> in
-                          predicate(state) ? effects(state).producer : .empty
-                      })
+            self.init(
+                compactingState: { $0 },
+                effects: { state -> SignalProducer<Event, Never> in
+                    predicate(state) ? effects(state).producer : .empty
+                }
+            )
         }
-
+        
+        /// Creates a Feedback which re-evaluates the given effect every time the
+        /// given predicate passes.
+        ///
+        /// If the previous effect is still alive when a new one is about to start,
+        /// the previous one would automatically be cancelled.
+        ///
+        /// - parameters:
+        ///   - predicate: The predicate to apply on the state.
+        ///   - effects: The side effect accepting the state and yielding events
+        ///              that eventually affect the state.
+        public static func predicate<Effect: SignalProducerConvertible>(
+            state predicate: @escaping (State) -> Bool,
+            effects: @escaping (State) -> Effect
+        ) -> Feedback where Effect.Value == Event, Effect.Error == Never {
+            Feedback(predicate: predicate, effects: effects)
+        }
+        
         /// Creates a Feedback which re-evaluates the given effect every time the
         /// state changes.
         ///
@@ -199,59 +367,79 @@ extension Loop {
         public init<Effect: SignalProducerConvertible>(
             effects: @escaping (State) -> Effect
         ) where Effect.Value == Event, Effect.Error == Never {
-            self.init(compacting: { $0 }, effects: effects)
+            self.init(compactingState: { $0 }, effects: effects)
         }
         
+        /// Creates a Feedback which re-evaluates the given effect every time the
+        /// state changes with the Event that caused the change.
+        ///
+        /// If the previous effect is still alive when a new one is about to start,
+        /// the previous one would automatically be cancelled.
+        ///
+        /// - parameters:
+        ///   - effects: The side effect accepting the state and yielding events
+        ///              that eventually affect the state.
+        init<Effect: SignalProducerConvertible>(
+            middleware effect: @escaping (State, Event) -> Effect
+        ) where Effect.Value == Event, Effect.Error == Never {
+            self.init(events: { state, output in
+                state.compactMap { s, e -> (State, Event)? in
+                    guard let e = e else {
+                        return nil
+                    }
+                    return (s, e)
+                }
+                .flatMap(.latest) {
+                    effect($0, $1).producer.enqueue(to: output)
+                }
+            })
+        }
+        
+        public static func middleware<Effect: SignalProducerConvertible>(
+            effect: @escaping (State, Event) -> Effect
+        ) -> Self where Effect.Value == Event, Effect.Error == Never {
+            Feedback(middleware: effect)
+        }
+
         public static var input: (feedback: Feedback, observer: (Event) -> Void) {
             let pipe = Signal<Event, Never>.pipe()
-            let feedback = Feedback(source: pipe.output, as: { $0 })
+            let feedback = Feedback(source: pipe.output) { $0 }
             return (feedback, pipe.input.send)
         }
-        
+
         public static func pullback<LocalState, LocalEvent>(
             feedback: Loop<LocalState, LocalEvent>.Feedback,
             value: KeyPath<State, LocalState>,
-            event: @escaping (LocalEvent) -> Event
+            embedEvent: @escaping (LocalEvent) -> Event,
+            extractEvent: @escaping (Event) -> LocalEvent?
         ) -> Feedback {
-            return Feedback(startWith: { (state, consumer) in
-                return feedback.events(
-                    state.map(value),
-                    consumer.pullback(event)
-                )
-            })
+            return feedback.pullback(value: value, embedEvent: embedEvent, extractEvent: extractEvent)
         }
         
+        public func pullback<GlobalState, GlobalEvent>(
+            value: KeyPath<GlobalState, State>,
+            embedEvent: @escaping (Event) -> GlobalEvent,
+            extractEvent: @escaping (GlobalEvent) -> Event?
+        ) -> Loop<GlobalState, GlobalEvent>.Feedback {
+            return Loop<GlobalState, GlobalEvent>.Feedback { (state, consumer)  in
+                self.events(
+                    state.map {
+                        ($0.0[keyPath: value], $0.1.flatMap(extractEvent))
+                    },
+                    consumer.pullback(embedEvent)
+                )
+            }
+        }
+
         public static func combine(_ feedbacks: Loop<State, Event>.Feedback...) -> Feedback {
-            return Feedback(startWith: { (state, consumer) in
-                return feedbacks.map { (feedback) in
+            return Feedback { state, consumer in
+                feedbacks.map { feedback in
                     feedback.events(state, consumer)
                 }
-                .reduce(into: CompositeDisposable()) { (composite, disposable) in
+                .reduce(into: CompositeDisposable()) { composite, disposable in
                     composite += disposable
                 }
-            })
+            }
         }
-    }
-}
-
-extension Loop.Feedback {
-    @available(*, deprecated, renamed:"init(_:)")
-    public static func custom(
-        _ setup: @escaping (
-            _ state: SignalProducer<State, Never>,
-            _ output: FeedbackEventConsumer<Event>
-        ) -> Disposable
-    ) -> Loop.Feedback {
-        return FeedbackLoop.Feedback(events: setup)
-    }
-
-    @available(*, deprecated, renamed:"init(_:)")
-    public init(
-        events: @escaping (
-            _ state: SignalProducer<State, Never>,
-            _ output: FeedbackEventConsumer<Event>
-        ) -> Disposable
-    ) {
-        self.events = { events($0.producer, $1) }
     }
 }

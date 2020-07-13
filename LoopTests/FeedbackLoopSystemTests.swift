@@ -320,6 +320,7 @@ class FeedbackLoopSystemTests: XCTestCase {
                             // `state` is NOT GUARANTEED to reflect events emitted earlier in the producer chain.
                             state
                                 .take(first: 3)
+                                .map(\.0)
                                 .map { $0 + 1000 }
                         )
                         .enqueue(to: output)
@@ -371,4 +372,82 @@ class FeedbackLoopSystemTests: XCTestCase {
         evaluate()
         #endif
     }
+
+    func test_events_are_produced_in_correct_order() {
+        let (feedback, input) = Loop<Int, Int>.Feedback.input
+        var events: [Int] = []
+        let system = SignalProducer<Int, Never>.feedbackLoop(
+            initial: 0,
+            reduce: { (state: inout Int, event: Int) in
+                events.append(event)
+                state += event
+            },
+            feedbacks: [
+                feedback
+            ]
+        )
+
+        var results: [Int] = []
+
+        system.startWithValues { value in
+            results.append(value)
+        }
+        
+        input(1)
+        input(2)
+        input(3)
+
+        expect(results) == [0, 1, 3, 6]
+        expect(events) == [1, 2, 3]
+    }
+
+    func test_events_of_feedback_emitted_in_correct_order() {
+        let (feedback, input) = Loop<Int, Int>.Feedback.input
+        var events: [Int] = []
+        var result: [(Int, Int?)] = []
+        let system = SignalProducer<Int, Never>.feedbackLoop(
+            initial: 0,
+            reduce: { (state: inout Int, event: Int) in
+                events.append(event)
+                state += event
+            },
+            feedbacks: [
+                feedback,
+                Loop.Feedback.init(events: { (stateAndEvents, consumer) -> SignalProducer<Never, Never> in
+                    stateAndEvents.on(value: {
+                        result.append($0)
+                    })
+                    .flatMap(.latest) { _ -> SignalProducer<Never, Never> in
+                        return SignalProducer<Int, Never>.empty
+                            .enqueue(to: consumer)
+                    }
+                })
+            ]
+        )
+
+        var states: [Int] = []
+
+        system.startWithValues { value in
+            states.append(value)
+        }
+
+        input(1)
+        input(2)
+        input(3)
+
+        expect(states) == [0, 1, 3, 6]
+        XCTAssertTrue(result.map(Tuple2.init) == [Tuple2(0, nil), Tuple2(1, 1), Tuple2(3, 2), Tuple2(6, 3)])
+    }
 }
+
+struct Tuple2<T, U> {
+    let a: T
+    let b: U
+
+    init(_ a: T, _ b: U) {
+        self.a = a
+        self.b = b
+    }
+}
+
+extension Tuple2: Equatable where T: Equatable, U: Equatable {}
