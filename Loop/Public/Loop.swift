@@ -62,7 +62,9 @@ public final class Loop<State, Event> {
         )
     }
 
-    public func eraseEventType() -> Loop<State, Never> {
+    /// Create a scoped `Loop` from `self` which will not accept any input from `Loop.send(_:)`. Note that sending
+    /// events on `self` through `Loop.send(_:)` remains unaffected.
+    public func ignoringInput() -> Loop<State, Never> {
         return Loop<State, Never>(
             box: box.scoped(to: { $0 }, event: { _ in fatalError() })
         )
