@@ -336,7 +336,43 @@ class FeedbackLoopSystemTests: XCTestCase {
 
         expect(results) == [0, 2, 1002, 2004, 4006]
     }
-    
+
+    func test_should_not_deadlock_when_feedback_effect_starts_loop_producer_synchronously() {
+        var _loop: Loop<Int, Int>!
+
+        let loop = Loop<Int, Int>(
+            initial: 0,
+            reducer: { $0 += $1 },
+            feedbacks: [
+                .init(
+                    skippingRepeated: { $0 == 1 },
+                    effects: { isOne in
+                        isOne
+                            ? _loop.producer.map(value: 1000).take(first: 1)
+                            : .empty
+                    }
+                )
+            ]
+        )
+        _loop = loop
+
+        var results: [Int] = []
+        loop.producer.startWithValues { results.append($0) }
+
+        expect(results) == [0]
+
+        func evaluate() {
+            loop.send(1)
+            expect(results) == [0, 1, 1001]
+        }
+
+        #if arch(x86_64)
+        expect(expression: evaluate).notTo(throwAssertion())
+        #else
+        evaluate()
+        #endif
+    }
+
     func test_events_are_produced_in_correct_order() {
         let (feedback, input) = Loop<Int, Int>.Feedback.input
         var events: [Int] = []

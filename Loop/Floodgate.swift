@@ -27,7 +27,8 @@ final class Floodgate<State, Event>: FeedbackEventConsumer<Event> {
         }
     }
 
-    private let reducerLock = NSLock()
+    private let reducerLock = RecursiveLock()
+
     private var state: State
     private var hasStarted = false
 
@@ -53,7 +54,8 @@ final class Floodgate<State, Event>: FeedbackEventConsumer<Event> {
             )
         }
 
-        reducerLock.perform {
+        reducerLock.perform { reentrant in
+            assert(reentrant == false)
             drainEvents()
         }
     }
@@ -61,32 +63,43 @@ final class Floodgate<State, Event>: FeedbackEventConsumer<Event> {
     override func process(_ event: Event, for token: Token) {
         enqueue(event, for: token)
 
-        if reducerLock.try() {
-            repeat {
+        var continueToDrain = false
+
+        repeat {
+            // We use a recursive lock to guard the reducer, so as to allow state access via `withValue` to be
+            // reentrant. But in order to not deadlock in ReactiveSwift, reentrant calls MUST NOT drain the queue.
+            // Otherwise, `consume(_:)` will eventually invoke the reducer and send out a state via `changeObserver`,
+            // leading to a deadlock.
+            //
+            // If we know that the call is reentrant, we can confidently skip draining the queue anyway, because the
+            // outmost call — the one who first acquires the lock on the current lock owner thread — is already looping
+            // to exhaustively drain the queue.
+            continueToDrain = reducerLock.tryPerform { isReentrant in
+                guard isReentrant == false else { return false }
                 drainEvents()
-                reducerLock.unlock()
-            } while queue.withValue({ $0.hasEvents }) && reducerLock.try()
-            // ^^^
-            // Restart the event draining after we unlock the reducer lock, iff:
-            //
-            // 1. the queue still has unprocessed events; and
-            // 2. no concurrent actor has taken the reducer lock, which implies no event draining would be started
-            //    unless we take active action.
-            //
-            // This eliminates a race condition in the following sequence of operations:
-            //
-            // |              Thread A              |              Thread B              |
-            // |------------------------------------|------------------------------------|
-            // |     concurrent dequeue: no item    |                                    |
-            // |                                    |         concurrent enqueue         |
-            // |                                    |         trylock lock: BUSY         |
-            // |            unlock lock             |                                    |
-            // |                                    |                                    |
-            // |             <<<  The enqueued event is left unprocessed. >>>            |
-            //
-            // The trylock-unlock duo has a synchronize-with relationship, which ensures that Thread A must see any
-            // concurrent enqueue that *happens before* the trylock.
-        }
+                return true
+            }
+        } while queue.withValue({ $0.hasEvents }) && continueToDrain
+        // ^^^
+        // Restart the event draining after we unlock the reducer lock, iff:
+        //
+        // 1. the queue still has unprocessed events; and
+        // 2. no concurrent actor has taken the reducer lock, which implies no event draining would be started
+        //    unless we take active action.
+        //
+        // This eliminates a race condition in the following sequence of operations:
+        //
+        // |              Thread A              |              Thread B              |
+        // |------------------------------------|------------------------------------|
+        // |     concurrent dequeue: no item    |                                    |
+        // |                                    |         concurrent enqueue         |
+        // |                                    |         trylock lock: BUSY         |
+        // |            unlock lock             |                                    |
+        // |                                    |                                    |
+        // |             <<<  The enqueued event is left unprocessed. >>>            |
+        //
+        // The trylock-unlock duo has a synchronize-with relationship, which ensures that Thread A must see any
+        // concurrent enqueue that *happens before* the trylock.
     }
 
     override func dequeueAllEvents(for token: Token) {
@@ -94,7 +107,7 @@ final class Floodgate<State, Event>: FeedbackEventConsumer<Event> {
     }
 
     func withValue<Result>(_ action: (State, Bool) -> Result) -> Result {
-        reducerLock.perform { action(state, hasStarted) }
+        reducerLock.perform { _ in action(state, hasStarted) }
     }
 
     func dispose() {
