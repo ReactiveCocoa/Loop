@@ -34,8 +34,7 @@ final class Floodgate<State, Event>: FeedbackEventConsumer<Event> {
 
     private let queue = Atomic(QueueState())
     private let reducer: (inout State, Event) -> Void
-    private var feedbacks: [Loop<State, Event>.Feedback] = []
-    private var feedbackDisposables = CompositeDisposable()
+    private let feedbackDisposables = CompositeDisposable()
 
     init(state: State, reducer: @escaping (inout State, Event) -> Void) {
         self.state = state
@@ -47,12 +46,6 @@ final class Floodgate<State, Event>: FeedbackEventConsumer<Event> {
     }
 
     func bootstrap(with feedbacks: [Loop<State, Event>.Feedback]) {
-        self.feedbacks = feedbacks
-
-        plugFeedbacks()
-    }
-
-    func plugFeedbacks() {
         for feedback in feedbacks {
             // Pass `producer` which has replay-1 semantic.
             feedbackDisposables += feedback.events(
@@ -65,11 +58,6 @@ final class Floodgate<State, Event>: FeedbackEventConsumer<Event> {
             assert(reentrant == false)
             drainEvents()
         }
-    }
-
-    func unplugFeedbacks() {
-        feedbackDisposables.dispose()
-        feedbackDisposables = CompositeDisposable()
     }
 
     override func process(_ event: Event, for token: Token) {
