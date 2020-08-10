@@ -163,7 +163,7 @@ class FeedbackLoopSystemTests: XCTestCase {
             .startWithValues { values.append($0) }
 
         expect(values) == ["initial", "initial_a", "initial_a_a"]
-        expect(startCount) == 2
+        expect(startCount) == 3
     }
 
     func test_should_not_miss_delivery_to_reducer_when_started_asynchronously() {
@@ -334,7 +334,13 @@ class FeedbackLoopSystemTests: XCTestCase {
             results.append(value)
         }
 
-        expect(results) == [0, 2, 1002, 2004, 4006]
+        // 0
+        // 0 + 2                         # from `then(.init(value: 2))`
+        // 2 + (2 + 1000)                # from the 1st value yielded by `concat(...)`
+        // 1004 + (1004 + 1000) = 3008   # from the 2nd value yielded by `concat(...)`
+        // 3008 + (3008 + 1000) = 7016   # from the 3rd value yielded by `concat(...)`
+
+        expect(results) == [0, 2, 1004, 3008, 7016]
     }
 
     func test_should_not_deadlock_when_feedback_effect_starts_loop_producer_synchronously() {
@@ -371,6 +377,29 @@ class FeedbackLoopSystemTests: XCTestCase {
         #else
         evaluate()
         #endif
+    }
+
+    func test_should_process_events_enqueued_during_starting_loop_producer() {
+        let loop = Loop<Int, Int>(
+            initial: 0,
+            reducer: { $0 += $1 },
+            feedbacks: []
+        )
+
+        var latestCount: Int?
+        var hasSentEvent = false
+
+        loop.producer
+            .on(value: { _ in
+                // The value event here is delivered in the critical section protected by `Floodgate.withValue`.
+                if !hasSentEvent {
+                    hasSentEvent = true
+                    loop.send(1000)
+                }
+            })
+            .startWithValues { latestCount = $0 }
+
+        expect(latestCount) == 1000
     }
 
     func test_events_are_produced_in_correct_order() {
