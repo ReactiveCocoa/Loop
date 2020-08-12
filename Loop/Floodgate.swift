@@ -54,15 +54,15 @@ final class Floodgate<State, Event>: FeedbackEventConsumer<Event> {
             )
         }
 
-        reducerLock.perform { reentrant in
-            assert(reentrant == false)
-            drainEvents()
-        }
+        processEnqueuedEvents()
     }
 
     override func process(_ event: Event, for token: Token) {
         enqueue(event, for: token)
+        processEnqueuedEvents()
+    }
 
+    private func processEnqueuedEvents() {
         var continueToDrain = false
 
         repeat {
@@ -76,7 +76,13 @@ final class Floodgate<State, Event>: FeedbackEventConsumer<Event> {
             // to exhaustively drain the queue.
             continueToDrain = reducerLock.tryPerform { isReentrant in
                 guard isReentrant == false else { return false }
-                drainEvents()
+
+                // Drain any recursively produced events.
+                while let next = dequeue() {
+                    reducer(&state, next)
+                    changeObserver.send(value: (state, next))
+                }
+
                 return true
             }
         } while queue.withValue({ $0.hasEvents }) && continueToDrain
@@ -107,7 +113,21 @@ final class Floodgate<State, Event>: FeedbackEventConsumer<Event> {
     }
 
     func withValue<Result>(_ action: (State, Bool) -> Result) -> Result {
-        reducerLock.perform { _ in action(state, hasStarted) }
+        let (result, isReentrant) = reducerLock.perform { isReentrant in
+            (action(state, hasStarted), isReentrant)
+        }
+
+        // If the lock acquisition above is not reentrant, we are the lock owner, and events could be enqueued in
+        // parallel during our brief ownership. So as the lock owner, we are obligated to defensively drain the event
+        // queue here, even if we did not enqueue any event.
+        //
+        // If the lock acquisition is reentrant, it means someone else in the call stack is the lock owner. So we can
+        // dodge this obligation.
+        if isReentrant == false {
+            processEnqueuedEvents()
+        }
+
+        return result
     }
 
     func dispose() {
@@ -131,17 +151,5 @@ final class Floodgate<State, Event>: FeedbackEventConsumer<Event> {
             guard $0.hasEvents else { return nil }
             return $0.events.removeFirst().0
         }
-    }
-
-    private func drainEvents() {
-        // Drain any recursively produced events.
-        while let next = dequeue() {
-            consume(next)
-        }
-    }
-
-    private func consume(_ event: Event) {
-        reducer(&state, event)
-        changeObserver.send(value: (state, event))
     }
 }
