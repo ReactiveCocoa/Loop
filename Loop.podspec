@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name          = "Loop"
-  s.version       = "2.0.0-beta1"
+  s.version       = "2.0.0-beta2"
   s.summary       = "Unidirectional reactive architecture"
 
   s.description   = <<-DESC
