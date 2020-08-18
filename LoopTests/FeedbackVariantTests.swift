@@ -51,6 +51,34 @@ class FeedbackVariantTests: XCTestCase {
         expect(receivedValues.last) == "hello_feedback__world_"
     }
 
+    func test_whenBecomesTrue_shouldFireEffectWhenInitialStateSatisfiesThePredicate() {
+        var hasStarted = false
+        var hasCancelled = false
+
+        let loop = Loop<String, String>(
+            initial: "hello",
+            reducer: { content, string in
+                content = string
+            },
+            feedbacks: [
+                .whenBecomesTrue(
+                    { $0.hasPrefix("hello") },
+                    effects: { _ in
+                        SignalProducer.never
+                            .on(started: { hasStarted = true })
+                            .on(disposed: { hasCancelled = true })
+                    }
+                )
+            ]
+        )
+
+        expect(hasStarted) == true
+        expect(hasCancelled) == false
+
+        loop.send("")
+        expect(hasCancelled) == true
+    }
+
     func test_whenBecomesTrue_negative_edge() {
         var hasStarted = false
         var hasCancelled = false
@@ -133,6 +161,34 @@ class FeedbackVariantTests: XCTestCase {
         loop.send("hello_it_is_me#")
         expect(loop.box._current) == "hello_it_is_me#hello_it_is_me#"
         expect(receivedValues.last) == "hello_it_is_me#"
+    }
+
+    func test_firstValueAfterNil_shouldFireEffectWhenInitialStateGivesNonNilTransformOutput() {
+        var hasStarted = false
+        var hasCancelled = false
+
+        let loop = Loop<String, String>(
+            initial: "hello",
+            reducer: { content, string in
+                content = string
+            },
+            feedbacks: [
+                .firstValueAfterNil(
+                    { $0.hasPrefix("hello") ? $0 : nil },
+                    effects: { _ in
+                        SignalProducer.never
+                            .on(started: { hasStarted = true })
+                            .on(disposed: { hasCancelled = true })
+                    }
+                )
+            ]
+        )
+
+        expect(hasStarted) == true
+        expect(hasCancelled) == false
+
+        loop.send("")
+        expect(hasCancelled) == true
     }
 
     func test_firstValueAfterNil_negative_edge() {
