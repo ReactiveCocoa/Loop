@@ -311,7 +311,7 @@ extension Loop {
           self.init(
             compacting: { state in
               state
-                .scan(into: (false, nil)) { (temp: inout (lastWasNil: Bool, output: NilEdgeTransition<Value>?), state: State) in
+                .scan(into: (true, nil)) { (temp: inout (lastWasNil: Bool, output: NilEdgeTransition<Value>?), state: State) in
                   let result = transform(state)
                   temp.output = nil
 
