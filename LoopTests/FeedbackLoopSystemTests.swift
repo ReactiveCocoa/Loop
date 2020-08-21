@@ -467,6 +467,40 @@ class FeedbackLoopSystemTests: XCTestCase {
         expect(states) == [0, 1, 3, 6]
         XCTAssertTrue(result.map(Tuple2.init) == [Tuple2(0, nil), Tuple2(1, 1), Tuple2(3, 2), Tuple2(6, 3)])
     }
+
+    #if arch(x86_64) && canImport(Darwin)
+    func test_sending_event_should_be_reentrant_safe() {
+        var whenEqualToOne: (() -> Void)?
+
+        let loop = Loop<Int, Int>(
+            initial: 0,
+            reducer: { $0 += $1 },
+            feedbacks: [
+                .init(
+                    whenBecomesTrue: { $0 == 1 },
+                    effects: { _ in SignalProducer.empty.on(completed: { whenEqualToOne?() }) }
+                )
+            ]
+        )
+
+        whenEqualToOne = { [weak loop] in loop?.send(2) }
+
+        var states: [Int] = []
+        loop.producer.startWithValues { [weak loop] value in
+            if value == 3 {
+                loop?.send(3)
+            }
+
+            states.append(value)
+        }
+
+        expect {
+            loop.send(1)
+        }.toNot(throwAssertion())
+
+        expect(states) == [0, 1, 3, 6]
+    }
+    #endif
 }
 
 struct Tuple2<T, U> {
