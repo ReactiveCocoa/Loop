@@ -59,7 +59,6 @@ internal class RootLoopBox<State, Event>: LoopBoxBase<State, Event> {
     let floodgate: Floodgate<State, Event>
     private let _lifetime: Lifetime
     private let token: Lifetime.Token
-    private let input = Loop<State, Event>.Feedback.input
 
     override var producer: SignalProducer<State, Never> {
         floodgate.producer
@@ -84,7 +83,7 @@ internal class RootLoopBox<State, Event>: LoopBoxBase<State, Event> {
     }
 
     func start(with feedbacks: [Loop<State, Event>.Feedback]) {
-        floodgate.bootstrap(with: feedbacks + [input.feedback])
+        floodgate.bootstrap(with: feedbacks)
     }
 
     func stop() {
@@ -92,7 +91,7 @@ internal class RootLoopBox<State, Event>: LoopBoxBase<State, Event> {
     }
 
     override func send(_ event: Event) {
-        input.observer(event)
+        floodgate.process(event, for: Token())
     }
 
     deinit {
