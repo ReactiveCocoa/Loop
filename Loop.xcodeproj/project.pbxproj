@@ -95,13 +95,13 @@
 		65F8C2972183725900924657 /* Loop.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 25CC87AE1F92855300A6EBFC /* Loop.framework */; };
 		65F8C2CF218378F500924657 /* Loop.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F8C26B218371A800924657 /* Loop.framework */; };
 		65F8C2D0218378F500924657 /* Loop.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 65F8C26B218371A800924657 /* Loop.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		9A0D0D2024AAA12700429900 /* MainThreadLoopBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0D0D1F24AAA12700429900 /* MainThreadLoopBox.swift */; };
-		9A0D0D2124AAA12C00429900 /* MainThreadLoopBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0D0D1F24AAA12700429900 /* MainThreadLoopBox.swift */; };
-		9A0D0D2224AAA12C00429900 /* MainThreadLoopBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0D0D1F24AAA12700429900 /* MainThreadLoopBox.swift */; };
 		9A01A42824BC78E200075A57 /* FeedbackVariantTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A01A42724BC78E200075A57 /* FeedbackVariantTests.swift */; };
 		9A01A42924BC78E200075A57 /* FeedbackVariantTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A01A42724BC78E200075A57 /* FeedbackVariantTests.swift */; };
 		9A01A42A24BC78E200075A57 /* FeedbackVariantTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A01A42724BC78E200075A57 /* FeedbackVariantTests.swift */; };
 		9A01A42B24BC7E2E00075A57 /* EnvironmentLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8F92132473250E00C1C90E /* EnvironmentLoop.swift */; };
+		9A0D0D2024AAA12700429900 /* MainThreadLoopBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0D0D1F24AAA12700429900 /* MainThreadLoopBox.swift */; };
+		9A0D0D2124AAA12C00429900 /* MainThreadLoopBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0D0D1F24AAA12700429900 /* MainThreadLoopBox.swift */; };
+		9A0D0D2224AAA12C00429900 /* MainThreadLoopBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0D0D1F24AAA12700429900 /* MainThreadLoopBox.swift */; };
 		9AD5D42D1F97375E00E6AE5A /* Property+System.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AD5D42C1F97375E00E6AE5A /* Property+System.swift */; };
 		9AE181BB1F95A71B00A07551 /* Loop.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 25CC87AE1F92855300A6EBFC /* Loop.framework */; };
 		9AE9563E2186341B005A8C69 /* ReactiveCocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AE9563B21863415005A8C69 /* ReactiveCocoa.framework */; };
@@ -250,8 +250,8 @@
 		65F8C27A218371AC00924657 /* Loop.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Loop.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		65F8C28E2183723F00924657 /* LoopTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LoopTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		65F8C2A22183725900924657 /* LoopTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LoopTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		9A0D0D1F24AAA12700429900 /* MainThreadLoopBox.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainThreadLoopBox.swift; sourceTree = "<group>"; };
 		9A01A42724BC78E200075A57 /* FeedbackVariantTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackVariantTests.swift; sourceTree = "<group>"; };
+		9A0D0D1F24AAA12700429900 /* MainThreadLoopBox.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainThreadLoopBox.swift; sourceTree = "<group>"; };
 		9AD5D42C1F97375E00E6AE5A /* Property+System.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Property+System.swift"; sourceTree = "<group>"; };
 		9AE181B61F95A71B00A07551 /* LoopTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LoopTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9AE181BA1F95A71B00A07551 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -1075,8 +1075,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
-				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -1129,8 +1129,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
-				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
