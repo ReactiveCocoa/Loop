@@ -7,7 +7,7 @@ class FeedbackLoopSystemTests: XCTestCase {
 
     func test_emits_initial() {
         let initial = "initial"
-        let feedback = FeedbackLoop<String, String>.Feedback { state in
+        let feedback = Loop<String, String>.Feedback { state in
             return SignalProducer(value: "_a")
         }
         let system = SignalProducer<String, Never>.feedbackLoop(
@@ -22,7 +22,7 @@ class FeedbackLoopSystemTests: XCTestCase {
     }
 
     func test_reducer_with_one_feedback_loop() {
-        let feedback = FeedbackLoop<String, String>.Feedback { state in
+        let feedback = Loop<String, String>.Feedback { state in
             return SignalProducer(value: "_a")
         }
         let system = SignalProducer<String, Never>.feedbackLoop(
@@ -48,10 +48,10 @@ class FeedbackLoopSystemTests: XCTestCase {
     }
 
     func test_reduce_with_two_immediate_feedback_loops() {
-        let feedback1 = FeedbackLoop<String, String>.Feedback { state in
+        let feedback1 = Loop<String, String>.Feedback { state in
             return !state.hasSuffix("_a") ? SignalProducer(value: "_a") : .empty
         }
-        let feedback2 = FeedbackLoop<String, String>.Feedback { state in
+        let feedback2 = Loop<String, String>.Feedback { state in
             return !state.hasSuffix("_b") ? SignalProducer(value: "_b") : .empty
         }
         let system = SignalProducer<String, Never>.feedbackLoop(
@@ -80,7 +80,7 @@ class FeedbackLoopSystemTests: XCTestCase {
     }
 
     func test_reduce_with_async_feedback_loop() {
-        let feedback = FeedbackLoop<String, String>.Feedback { state -> SignalProducer<String, Never> in
+        let feedback = Loop<String, String>.Feedback { state -> SignalProducer<String, Never> in
             if state == "initial" {
                 return SignalProducer(value: "_a")
                     .delay(0.1, on: QueueScheduler.main)
@@ -125,7 +125,7 @@ class FeedbackLoopSystemTests: XCTestCase {
                 state += event
             },
             feedbacks: [
-                FeedbackLoop<String, String>.Feedback { state in
+                Loop<String, String>.Feedback { state in
                     return signal.producer
                 }
             ]
@@ -149,7 +149,7 @@ class FeedbackLoopSystemTests: XCTestCase {
                 state += event
             },
             feedbacks: [
-                FeedbackLoop<String, String>.Feedback { state -> SignalProducer<String, Never> in
+                Loop<String, String>.Feedback { state -> SignalProducer<String, Never> in
                     return SignalProducer(value: "_a")
                         .on(starting: { startCount += 1 })
                 }
@@ -163,7 +163,7 @@ class FeedbackLoopSystemTests: XCTestCase {
             .startWithValues { values.append($0) }
 
         expect(values) == ["initial", "initial_a", "initial_a_a"]
-        expect(startCount) == 2
+        expect(startCount) == 3
     }
 
     func test_should_not_miss_delivery_to_reducer_when_started_asynchronously() {
@@ -181,7 +181,7 @@ class FeedbackLoopSystemTests: XCTestCase {
                         state += event
                     },
                     feedbacks: [
-                        FeedbackLoop<String, String>.Feedback { state, output in
+                        Loop<String, String>.Feedback { state, output in
                             state
                                 .take(first: 1)
                                 .map(value: "_event")
@@ -204,7 +204,7 @@ class FeedbackLoopSystemTests: XCTestCase {
             case increment
         }
         let (incrementSignal, incrementObserver) = Signal<Void, Never>.pipe()
-        let feedback = FeedbackLoop<Int, Event>.Feedback(predicate: { $0 < 2 }) { _ in
+        let feedback = Loop<Int, Event>.Feedback(predicate: { $0 < 2 }) { _ in
             incrementSignal.map { _ in Event.increment }
         }
         let system = SignalProducer<Int, Never>.feedbackLoop(
@@ -266,8 +266,8 @@ class FeedbackLoopSystemTests: XCTestCase {
                 }
             },
             feedbacks: [
-                FeedbackLoop.Feedback(source: increments, as: Event.increment(by:)),
-                FeedbackLoop.Feedback(source: workTrigger, as: { .timeConsumingWork })
+                Loop.Feedback(source: increments, as: Event.increment(by:)),
+                Loop.Feedback(source: workTrigger, as: { .timeConsumingWork })
             ]
         )
 
@@ -312,7 +312,7 @@ class FeedbackLoopSystemTests: XCTestCase {
                 state += event
             },
             feedbacks: [
-                FeedbackLoop.Feedback { state, output in
+                Loop.Feedback { state, output in
                     state
                         .take(first: 1)
                         .then(SignalProducer(value: 2))
@@ -320,6 +320,7 @@ class FeedbackLoopSystemTests: XCTestCase {
                             // `state` is NOT GUARANTEED to reflect events emitted earlier in the producer chain.
                             state
                                 .take(first: 3)
+                                .map(\.0)
                                 .map { $0 + 1000 }
                         )
                         .enqueue(to: output)
@@ -333,6 +334,183 @@ class FeedbackLoopSystemTests: XCTestCase {
             results.append(value)
         }
 
-        expect(results) == [0, 2, 1002, 2004, 4006]
+        // 0
+        // 0 + 2                         # from `then(.init(value: 2))`
+        // 2 + (2 + 1000)                # from the 1st value yielded by `concat(...)`
+        // 1004 + (1004 + 1000) = 3008   # from the 2nd value yielded by `concat(...)`
+        // 3008 + (3008 + 1000) = 7016   # from the 3rd value yielded by `concat(...)`
+
+        expect(results) == [0, 2, 1004, 3008, 7016]
+    }
+
+    func test_should_not_deadlock_when_feedback_effect_starts_loop_producer_synchronously() {
+        var _loop: Loop<Int, Int>!
+
+        let loop = Loop<Int, Int>(
+            initial: 0,
+            reducer: { $0 += $1 },
+            feedbacks: [
+                .init(
+                    skippingRepeated: { $0 == 1 },
+                    effects: { isOne in
+                        isOne
+                            ? _loop.producer.map(value: 1000).take(first: 1)
+                            : .empty
+                    }
+                )
+            ]
+        )
+        _loop = loop
+
+        var results: [Int] = []
+        loop.producer.startWithValues { results.append($0) }
+
+        expect(results) == [0]
+
+        func evaluate() {
+            loop.send(1)
+            expect(results) == [0, 1, 1001]
+        }
+
+        #if arch(x86_64)
+        expect(expression: evaluate).notTo(throwAssertion())
+        #else
+        evaluate()
+        #endif
+    }
+
+    func test_should_process_events_enqueued_during_starting_loop_producer() {
+        let loop = Loop<Int, Int>(
+            initial: 0,
+            reducer: { $0 += $1 },
+            feedbacks: []
+        )
+
+        var latestCount: Int?
+        var hasSentEvent = false
+
+        loop.producer
+            .on(value: { _ in
+                // The value event here is delivered in the critical section protected by `Floodgate.withValue`.
+                if !hasSentEvent {
+                    hasSentEvent = true
+                    loop.send(1000)
+                }
+            })
+            .startWithValues { latestCount = $0 }
+
+        expect(latestCount) == 1000
+    }
+
+    func test_events_are_produced_in_correct_order() {
+        let (feedback, input) = Loop<Int, Int>.Feedback.input
+        var events: [Int] = []
+        let system = SignalProducer<Int, Never>.feedbackLoop(
+            initial: 0,
+            reduce: { (state: inout Int, event: Int) in
+                events.append(event)
+                state += event
+            },
+            feedbacks: [
+                feedback
+            ]
+        )
+
+        var results: [Int] = []
+
+        system.startWithValues { value in
+            results.append(value)
+        }
+        
+        input(1)
+        input(2)
+        input(3)
+
+        expect(results) == [0, 1, 3, 6]
+        expect(events) == [1, 2, 3]
+    }
+
+    func test_events_of_feedback_emitted_in_correct_order() {
+        let (feedback, input) = Loop<Int, Int>.Feedback.input
+        var events: [Int] = []
+        var result: [(Int, Int?)] = []
+        let system = SignalProducer<Int, Never>.feedbackLoop(
+            initial: 0,
+            reduce: { (state: inout Int, event: Int) in
+                events.append(event)
+                state += event
+            },
+            feedbacks: [
+                feedback,
+                Loop.Feedback.init(events: { (stateAndEvents, consumer) -> SignalProducer<Never, Never> in
+                    stateAndEvents.on(value: {
+                        result.append($0)
+                    })
+                    .flatMap(.latest) { _ -> SignalProducer<Never, Never> in
+                        return SignalProducer<Int, Never>.empty
+                            .enqueue(to: consumer)
+                    }
+                })
+            ]
+        )
+
+        var states: [Int] = []
+
+        system.startWithValues { value in
+            states.append(value)
+        }
+
+        input(1)
+        input(2)
+        input(3)
+
+        expect(states) == [0, 1, 3, 6]
+        XCTAssertTrue(result.map(Tuple2.init) == [Tuple2(0, nil), Tuple2(1, 1), Tuple2(3, 2), Tuple2(6, 3)])
+    }
+
+    #if arch(x86_64) && canImport(Darwin)
+    func test_sending_event_should_be_reentrant_safe() {
+        var whenEqualToOne: (() -> Void)?
+
+        let loop = Loop<Int, Int>(
+            initial: 0,
+            reducer: { $0 += $1 },
+            feedbacks: [
+                .init(
+                    whenBecomesTrue: { $0 == 1 },
+                    effects: { _ in SignalProducer.empty.on(completed: { whenEqualToOne?() }) }
+                )
+            ]
+        )
+
+        whenEqualToOne = { [weak loop] in loop?.send(2) }
+
+        var states: [Int] = []
+        loop.producer.startWithValues { [weak loop] value in
+            if value == 3 {
+                loop?.send(3)
+            }
+
+            states.append(value)
+        }
+
+        expect {
+            loop.send(1)
+        }.toNot(throwAssertion())
+
+        expect(states) == [0, 1, 3, 6]
+    }
+    #endif
+}
+
+struct Tuple2<T, U> {
+    let a: T
+    let b: U
+
+    init(_ a: T, _ b: U) {
+        self.a = a
+        self.b = b
     }
 }
+
+extension Tuple2: Equatable where T: Equatable, U: Equatable {}

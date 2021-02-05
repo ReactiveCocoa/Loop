@@ -34,7 +34,7 @@ public struct LoopBinding<State, Event>: DynamicProperty {
     }
 
     public func scoped<ScopedState, ScopedEvent>(
-        to value: KeyPath<State, ScopedState>,
+        to value: @escaping (State) -> ScopedState,
         event: @escaping (ScopedEvent) -> Event
     ) -> LoopBinding<ScopedState, ScopedEvent> {
         LoopBinding<ScopedState, ScopedEvent>(

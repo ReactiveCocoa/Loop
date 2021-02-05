@@ -8,11 +8,11 @@ internal class ScopedLoopBox<RootState, RootEvent, ScopedState, ScopedEvent>: Lo
     // MARK: [BEGIN] Loop Internal SPIs
     @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
     override var _mainThreadView: LoopBoxBase<ScopedState, ScopedEvent> {
-        ScopedLoopBox(root: root._mainThreadView, value: value, event: eventTransform)
+        ScopedLoopBox(root: root._mainThreadView, extract: extract, event: eventTransform)
     }
 
     override var _current: ScopedState {
-        root._current[keyPath: value]
+        extract(root._current)
     }
 
     #if canImport(Combine)
@@ -26,7 +26,7 @@ internal class ScopedLoopBox<RootState, RootEvent, ScopedState, ScopedEvent>: Lo
     // MARK: [END] Loop Internal SPIs
 
     override var producer: SignalProducer<ScopedState, Never> {
-        root.producer.map(value)
+        root.producer.map(extract)
     }
 
     override var lifetime: Lifetime {
@@ -34,16 +34,16 @@ internal class ScopedLoopBox<RootState, RootEvent, ScopedState, ScopedEvent>: Lo
     }
 
     private let root: LoopBoxBase<RootState, RootEvent>
-    private let value: KeyPath<RootState, ScopedState>
+    private let extract: (RootState) -> ScopedState
     private let eventTransform: (ScopedEvent) -> RootEvent
 
     init(
         root: LoopBoxBase<RootState, RootEvent>,
-        value: KeyPath<RootState, ScopedState>,
+        extract: @escaping (RootState) -> ScopedState,
         event: @escaping (ScopedEvent) -> RootEvent
     ) {
         self.root = root
-        self.value = value
+        self.extract = extract
         self.eventTransform = event
     }
 
@@ -52,12 +52,14 @@ internal class ScopedLoopBox<RootState, RootEvent, ScopedState, ScopedEvent>: Lo
     }
 
     override func scoped<S, E>(
-        to scope: KeyPath<ScopedState, S>,
+        to scope: @escaping (ScopedState) -> S,
         event: @escaping (E) -> ScopedEvent
     ) -> LoopBoxBase<S, E> {
+        let extract = self.extract
+
         return ScopedLoopBox<RootState, RootEvent, S, E>(
             root: self.root,
-            value: value.appending(path: scope),
+            extract: { scope(extract($0)) },
             event: { [eventTransform] in eventTransform(event($0)) }
         )
     }
@@ -106,7 +108,6 @@ internal class RootLoopBox<State, Event>: LoopBoxBase<State, Event> {
     let floodgate: Floodgate<State, Event>
     private let _lifetime: Lifetime
     private let token: Lifetime.Token
-    private let input = Loop<State, Event>.Feedback.input
 
     override var producer: SignalProducer<State, Never> {
         floodgate.producer
@@ -124,14 +125,14 @@ internal class RootLoopBox<State, Event>: LoopBoxBase<State, Event> {
     }
 
     override func scoped<S, E>(
-        to scope: KeyPath<State, S>,
+        to scope: @escaping (State) -> S,
         event: @escaping (E) -> Event
     ) -> LoopBoxBase<S, E> {
-        ScopedLoopBox(root: self, value: scope, event: event)
+        ScopedLoopBox(root: self, extract: scope, event: event)
     }
 
     func start(with feedbacks: [Loop<State, Event>.Feedback]) {
-        floodgate.bootstrap(with: feedbacks + [input.feedback])
+        floodgate.bootstrap(with: feedbacks)
     }
 
     func stop() {
@@ -139,7 +140,7 @@ internal class RootLoopBox<State, Event>: LoopBoxBase<State, Event> {
     }
 
     override func send(_ event: Event) {
-        input.observer(event)
+        floodgate.process(event, for: Token())
     }
 
     deinit {
@@ -165,7 +166,7 @@ internal class LoopBoxBase<State, Event> {
     func send(_ event: Event) { subclassMustImplement() }
 
     func scoped<S, E>(
-        to scope: KeyPath<State, S>,
+        to scope: @escaping (State) -> S,
         event: @escaping (E) -> Event
     ) -> LoopBoxBase<S, E> {
         subclassMustImplement()

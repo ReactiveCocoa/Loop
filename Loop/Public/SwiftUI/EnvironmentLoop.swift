@@ -7,6 +7,8 @@ import ReactiveSwift
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 @propertyWrapper
 public struct EnvironmentLoop<State, Event>: DynamicProperty {
+    static var loopType: LoopType { LoopType(Loop<State, Event>.self) }
+
     @Environment(\.loops)
     var erasedLoops: [LoopType: AnyObject]
 

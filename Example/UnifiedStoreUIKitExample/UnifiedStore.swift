@@ -22,13 +22,19 @@ enum UnifiedStore {
         )
     )
 
-    private static let feedbacks: Loop<State, Event>.Feedback = Loop<State, Event>.Feedback.combine(
-        Loop<State, Event>.Feedback.pullback(
-            feedback: Movies.feedback,
+    private static let feedbacks: Loop<State, Event>.Feedback = Movies.feedback
+        .pullback(
             value: \.movies,
-            event: Event.movies
+            embedEvent: Event.movies,
+            extractEvent: { (event) -> Movies.Event? in
+                switch event {
+                case let .movies(moviesEvent):
+                    return moviesEvent
+                default:
+                    return nil
+                }
+            }
         )
-    )
 }
 
 extension UnifiedStore {

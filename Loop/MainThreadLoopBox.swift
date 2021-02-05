@@ -73,10 +73,10 @@ class MainThreadLoopBox<State, Event>: LoopBoxBase<State, Event> {
     }
 
     override func scoped<S, E>(
-        to scope: KeyPath<State, S>,
+        to scope: @escaping (State) -> S,
         event: @escaping (E) -> Event
     ) -> LoopBoxBase<S, E> {
-        ScopedLoopBox(root: self, value: scope, event: event)
+        ScopedLoopBox(root: self, extract: scope, event: event)
     }
 
     override func send(_ event: Event) {

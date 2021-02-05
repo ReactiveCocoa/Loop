@@ -65,7 +65,6 @@
 		5BC88F9D246B1CDE00394C63 /* SignalProducer+Loop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC88F9B246B1CDE00394C63 /* SignalProducer+Loop.swift */; };
 		5BC88F9E246B1CDE00394C63 /* SignalProducer+Loop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC88F9B246B1CDE00394C63 /* SignalProducer+Loop.swift */; };
 		5BDEDA3B2473357A00A13013 /* EnvironmentLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8F92132473250E00C1C90E /* EnvironmentLoop.swift */; };
-		5BDEDA3C2473357A00A13013 /* EnvironmentLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8F92132473250E00C1C90E /* EnvironmentLoop.swift */; };
 		5BDEDA3D2473357B00A13013 /* EnvironmentLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8F92132473250E00C1C90E /* EnvironmentLoop.swift */; };
 		5BDEDA3E2473359C00A13013 /* EnvironmentValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8F921B247325C300C1C90E /* EnvironmentValues.swift */; };
 		5BDEDA3F2473359D00A13013 /* EnvironmentValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8F921B247325C300C1C90E /* EnvironmentValues.swift */; };
@@ -99,6 +98,10 @@
 		9A0D0D2024AAA12700429900 /* MainThreadLoopBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0D0D1F24AAA12700429900 /* MainThreadLoopBox.swift */; };
 		9A0D0D2124AAA12C00429900 /* MainThreadLoopBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0D0D1F24AAA12700429900 /* MainThreadLoopBox.swift */; };
 		9A0D0D2224AAA12C00429900 /* MainThreadLoopBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0D0D1F24AAA12700429900 /* MainThreadLoopBox.swift */; };
+		9A01A42824BC78E200075A57 /* FeedbackVariantTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A01A42724BC78E200075A57 /* FeedbackVariantTests.swift */; };
+		9A01A42924BC78E200075A57 /* FeedbackVariantTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A01A42724BC78E200075A57 /* FeedbackVariantTests.swift */; };
+		9A01A42A24BC78E200075A57 /* FeedbackVariantTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A01A42724BC78E200075A57 /* FeedbackVariantTests.swift */; };
+		9A01A42B24BC7E2E00075A57 /* EnvironmentLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8F92132473250E00C1C90E /* EnvironmentLoop.swift */; };
 		9AD5D42D1F97375E00E6AE5A /* Property+System.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AD5D42C1F97375E00E6AE5A /* Property+System.swift */; };
 		9AE181BB1F95A71B00A07551 /* Loop.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 25CC87AE1F92855300A6EBFC /* Loop.framework */; };
 		9AE9563E2186341B005A8C69 /* ReactiveCocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AE9563B21863415005A8C69 /* ReactiveCocoa.framework */; };
@@ -248,6 +251,7 @@
 		65F8C28E2183723F00924657 /* LoopTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LoopTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		65F8C2A22183725900924657 /* LoopTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LoopTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9A0D0D1F24AAA12700429900 /* MainThreadLoopBox.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainThreadLoopBox.swift; sourceTree = "<group>"; };
+		9A01A42724BC78E200075A57 /* FeedbackVariantTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackVariantTests.swift; sourceTree = "<group>"; };
 		9AD5D42C1F97375E00E6AE5A /* Property+System.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Property+System.swift"; sourceTree = "<group>"; };
 		9AE181B61F95A71B00A07551 /* LoopTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LoopTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9AE181BA1F95A71B00A07551 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -520,6 +524,7 @@
 				5898B6D01F97ADDD005EEAEC /* SystemTests.swift */,
 				9AE181BA1F95A71B00A07551 /* Info.plist */,
 				250B70DE23FC441300848429 /* FeedbackLoopSystemTests.swift */,
+				9A01A42724BC78E200075A57 /* FeedbackVariantTests.swift */,
 			);
 			path = LoopTests;
 			sourceTree = "<group>";
@@ -877,6 +882,7 @@
 				5BC88F93246B17B200394C63 /* Context.swift in Sources */,
 				9A0D0D2124AAA12C00429900 /* MainThreadLoopBox.swift in Sources */,
 				5BAB9751247FFBC10079B532 /* SwiftUIHotSwappableSubscription.swift in Sources */,
+				9A01A42B24BC7E2E00075A57 /* EnvironmentLoop.swift in Sources */,
 				585CD87C239E6A3E004BE9CC /* Reducer.swift in Sources */,
 				65F8C262218371A800924657 /* Property+System.swift in Sources */,
 				5BC88F89246AFC5900394C63 /* ReactiveSwift+EnqueueTo.swift in Sources */,
@@ -886,7 +892,6 @@
 				5BC88F8F246B11DE00394C63 /* LoopBox.swift in Sources */,
 				65761B2723CF20EF004D5506 /* Floodgate.swift in Sources */,
 				5BC88F99246B191200394C63 /* Loop.swift in Sources */,
-				5BDEDA3C2473357A00A13013 /* EnvironmentLoop.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -919,6 +924,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9A01A42924BC78E200075A57 /* FeedbackVariantTests.swift in Sources */,
 				65F8C2802183723F00924657 /* SystemTests.swift in Sources */,
 				250B70E023FC441300848429 /* FeedbackLoopSystemTests.swift in Sources */,
 			);
@@ -928,6 +934,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9A01A42A24BC78E200075A57 /* FeedbackVariantTests.swift in Sources */,
 				65F8C2942183725900924657 /* SystemTests.swift in Sources */,
 				250B70E123FC441300848429 /* FeedbackLoopSystemTests.swift in Sources */,
 			);
@@ -937,6 +944,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9A01A42824BC78E200075A57 /* FeedbackVariantTests.swift in Sources */,
 				5898B6D11F97ADDD005EEAEC /* SystemTests.swift in Sources */,
 				250B70DF23FC441300848429 /* FeedbackLoopSystemTests.swift in Sources */,
 			);
