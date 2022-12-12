@@ -21,5 +21,5 @@ Pod::Spec.new do |s|
   s.cocoapods_version = ">= 1.7.0"
   s.swift_versions = ["5.2"]
 
-  s.dependency "ReactiveSwift", "~> 6.2"
+  s.dependency "ReactiveSwift", "~> 7.0"
 end
