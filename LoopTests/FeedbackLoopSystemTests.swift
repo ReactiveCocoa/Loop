@@ -373,7 +373,7 @@ class FeedbackLoopSystemTests: XCTestCase {
         }
 
         #if arch(x86_64)
-        expect(expression: evaluate).notTo(throwAssertion())
+        expect(evaluate).notTo(throwAssertion())
         #else
         evaluate()
         #endif
