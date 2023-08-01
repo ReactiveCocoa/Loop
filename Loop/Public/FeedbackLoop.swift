@@ -453,6 +453,17 @@ extension Loop {
             }
         }
 
+        public func autoconnect(followingChangesIn predicate: @escaping (State) -> Bool) -> Feedback {
+            return Feedback { state, consumer in
+                self.events(
+                    state
+                        .skipRepeats { predicate($0.0) == predicate($1.0) }
+                        .flatMap(.latest) { predicate($0.0) ? state.filter { predicate($0.0) } : .empty },
+                    consumer
+                )
+            }
+        }
+
         public static func combine(_ feedbacks: Loop<State, Event>.Feedback...) -> Feedback {
             return Feedback { state, consumer in
                 feedbacks.map { feedback in

@@ -230,4 +230,39 @@ class FeedbackVariantTests: XCTestCase {
         loop.send("world")
         expect(hasCancelled) == true
     }
+
+    func test_autoconnect_disposes_and_restores_flows_according_to_predicate() {
+
+        let loop = Loop<String, String>(
+            initial: "",
+            reducer: { content, string in
+                content = string
+            },
+            feedbacks: [
+                Loop<String, String>.Feedback
+                    .init(
+                        lensing: { $0.hasPrefix("hello") ? $0 : nil },
+                        effects: { SignalProducer(value: $0.uppercased()) }
+                    )
+                    .autoconnect(followingChangesIn: { $0.contains("disconnect") == false })
+            ]
+        )
+
+        expect(loop.box._current) == ""
+
+        // This should trigger an uppercased event
+        loop.send("hello1")
+        expect(loop.box._current) == "HELLO1"
+
+        loop.send("hello2")
+        expect(loop.box._current) == "HELLO2"
+
+        // This should lead to feedabck "disconnection", which in turn should cancel and disable the uppercasing effect.
+        loop.send("hello disconnect")
+        expect(loop.box._current) == "hello disconnect"
+
+        // This should lead feedback "connection", which in turn should reestablish the uppercasing effect.
+        loop.send("hello3")
+        expect(loop.box._current) == "HELLO3"
+    }
 }
